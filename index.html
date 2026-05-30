@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysSential — Operations & Growth Intake · Richard's Painting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFFFFF;--shell:#EAEEF3;--panel:#F5F8FC;--panel-2:#EBF1F8;
+    --line:#E1E8F1;--line-2:#C9D6E6;
+    --teal:#06F7D4;--teal-ink:#048C79;--teal-tint:rgba(6,247,212,.14);
+    --navy:#0B1528;--text:#0B1528;--muted:#54657C;--muted-2:#8493A8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--shell);}
+  body{font-family:'Geist',-apple-system,system-ui,sans-serif;color:var(--text);
+    -webkit-font-smoothing:antialiased;line-height:1.5;padding:0 0 60px;}
+  .mono{font-family:'Geist Mono',ui-monospace,monospace;}
+
+  /* STICKY TOOLBAR */
+  .bar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+  .bar-in{max-width:840px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:14px;}
+  .bar .bmark{display:flex;align-items:center;gap:9px;}
+  .bar .glyph{width:26px;height:26px;border:1.5px solid var(--teal-ink);border-radius:6px;position:relative;flex:none;}
+  .bar .glyph::before{content:"";position:absolute;inset:6px;border-radius:2px;background:var(--teal);}
+  .bar .bw{font-size:15px;font-weight:700;letter-spacing:-.02em;}
+  .bar .bw b{color:var(--teal-ink);}
+  .bar .prog-wrap{flex:1;display:flex;align-items:center;gap:9px;}
+  .prog-track{flex:1;height:6px;background:var(--panel-2);border-radius:6px;overflow:hidden;max-width:230px;}
+  .prog-fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-ink));transition:width .3s;}
+  .prog-pct{font-size:11px;color:var(--muted);font-family:'Geist Mono',monospace;min-width:34px;}
+  .actions{display:flex;gap:7px;}
+  .btn{font-size:11px;font-weight:600;font-family:'Geist',sans-serif;border-radius:7px;padding:7px 12px;
+    cursor:pointer;border:1px solid var(--line-2);background:#fff;color:var(--navy);transition:.15s;}
+  .btn:hover{border-color:var(--teal-ink);}
+  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .btn.primary:hover{background:#13243E;}
+  @media(max-width:680px){.prog-wrap{display:none;}.bar .bw{font-size:13px;}}
+
+  .doc{max-width:840px;margin:18px auto;padding:0 22px;}
+
+  /* COVER */
+  .cover{background:var(--bg);border:1px solid var(--line);border-radius:16px;
+    padding:30px 34px;position:relative;overflow:hidden;margin-bottom:16px;}
+  .cover::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;
+    background:linear-gradient(90deg,var(--teal),var(--teal-ink));}
+  .cover .kick{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--teal-ink);font-weight:600;}
+  .cover h1{font-size:27px;font-weight:800;letter-spacing:-.03em;margin-top:9px;line-height:1.12;color:var(--navy);}
+  .cover h1 span{color:var(--teal-ink);}
+  .cover .lede{font-size:13px;color:var(--muted);margin-top:11px;line-height:1.6;max-width:600px;}
+  .cover .lede b{color:var(--text);font-weight:600;}
+  .meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;}
+  .meta{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:9px 13px;flex:1;min-width:150px;}
+  .meta .ml{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2);font-family:'Geist Mono',monospace;}
+  .meta input{border:none;background:transparent;font-family:'Geist',sans-serif;font-size:14px;font-weight:600;
+    color:var(--navy);width:100%;margin-top:3px;outline:none;}
+  .howto{margin-top:16px;padding:12px 15px;background:var(--teal-tint);border:1px solid var(--line-2);border-radius:9px;
+    font-size:11.5px;color:var(--text);line-height:1.55;}
+  .howto b{font-weight:700;}
+
+  /* SECTION */
+  section{background:var(--bg);border:1px solid var(--line);border-radius:14px;
+    padding:22px 26px 24px;margin-bottom:14px;}
+  .shead{display:flex;align-items:center;gap:12px;margin-bottom:5px;}
+  .snum{width:30px;height:30px;border-radius:8px;background:var(--navy);color:var(--teal);
+    font-family:'Geist Mono',monospace;font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .shead h2{font-size:17px;font-weight:700;letter-spacing:-.02em;color:var(--navy);}
+  .sdesc{font-size:11.5px;color:var(--muted);margin:2px 0 18px 42px;line-height:1.5;}
+
+  .q{margin-bottom:17px;}
+  .q:last-child{margin-bottom:0;}
+  .q > label.qt{display:block;font-size:13px;font-weight:600;color:var(--navy);margin-bottom:7px;line-height:1.4;}
+  .q .hint{font-size:10.5px;color:var(--muted-2);font-weight:400;}
+  input[type=text],input[type=number],textarea,select{
+    width:100%;border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;
+    font-family:'Geist',sans-serif;font-size:13px;color:var(--navy);background:var(--panel);outline:none;transition:.15s;}
+  input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{
+    border-color:var(--teal-ink);background:#fff;box-shadow:0 0 0 3px var(--teal-tint);}
+  textarea{resize:vertical;min-height:62px;line-height:1.5;}
+  textarea.big{min-height:92px;}
+
+  .opts{display:flex;flex-wrap:wrap;gap:7px;}
+  .opt{position:relative;}
+  .opt input{position:absolute;opacity:0;width:0;height:0;}
+  .opt label{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text);
+    border:1px solid var(--line-2);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer;transition:.12s;font-weight:500;}
+  .opt label:hover{border-color:var(--teal-ink);}
+  .opt input:checked + label{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .opt input:checked + label::before{content:"✓ ";color:var(--teal);font-weight:700;}
+
+  .scale{display:flex;gap:7px;align-items:center;}
+  .scale .opt label{width:38px;justify-content:center;padding:8px 0;font-weight:600;}
+  .scale .ends{font-size:10px;color:var(--muted-2);}
+
+  .ar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+  .ar-grid .arq label{font-size:10.5px;color:var(--muted);display:block;margin-bottom:4px;font-weight:600;}
+
+  .savednote{font-size:10.5px;color:var(--muted-2);font-family:'Geist Mono',monospace;text-align:center;margin:6px 0 0;}
+
+  footer{max-width:840px;margin:22px auto 0;padding:0 22px;text-align:center;}
+  .submit-card{background:var(--navy);border-radius:14px;padding:24px 26px;color:#fff;}
+  .submit-card h3{font-size:17px;font-weight:700;letter-spacing:-.01em;}
+  .submit-card p{font-size:12px;color:#A9BBD4;margin-top:7px;line-height:1.55;}
+  .submit-card .sb{display:flex;gap:9px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+  .submit-card .btn{padding:10px 18px;font-size:12px;}
+  .submit-card .btn.teal{background:var(--teal);color:#04201c;border-color:var(--teal);}
+  .submit-card .contact{font-size:10px;color:#6E83A3;font-family:'Geist Mono',monospace;margin-top:15px;}
+  .submit-card .contact a{color:#A9BBD4;text-decoration:none;}
+
+  @media print{
+    body{background:#fff;padding:0;}
+    .bar,.submit-card .sb{display:none;}
+    section,.cover{border:1px solid #ccc;break-inside:avoid;box-shadow:none;}
+    .opt input:not(:checked) + label{opacity:.35;}
+    @page{margin:0.4in;}
+  }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="bar">
+  <div class="bar-in">
+    <div class="bmark"><div class="glyph"></div><div class="bw">Sys<b>Sential</b></div></div>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-pct mono" id="progPct">0%</div>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="window.print()">Print / PDF</button>
+      <button class="btn" onclick="downloadJSON()">Download</button>
+      <button class="btn primary" onclick="emailAnswers()">✉ Email answers</button>
+    </div>
+  </div>
+</div>
+
+<div class="doc">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="kick mono">Operations &amp; Growth Intake</div>
+    <h1>Let's see exactly how your business runs — <span>then make it run itself.</span></h1>
+    <p class="lede">You've already invested in GoHighLevel. This quick intake maps how your location operates today so SysSential can <b>layer control, optimization, and AI tooling on top of the GHL you already own</b> — and free you up to run the business instead of chasing it. There are no wrong answers; "we don't do that yet" is a useful answer, and best guesses are fine.</p>
+    <div class="meta-row">
+      <div class="meta"><div class="ml mono">Your name</div><input type="text" id="m_name" value="Josh"></div>
+      <div class="meta"><div class="ml mono">Location</div><input type="text" id="m_loc" value="Summerville, SC"></div>
+      <div class="meta"><div class="ml mono">Date</div><input type="text" id="m_date" placeholder="MM / DD / YYYY"></div>
+    </div>
+    <div class="howto">⏱️ <b>~15–20 minutes.</b> Your progress saves automatically on this device as you type. When you're done, hit <b>Download answers</b> and email the file back, or <b>Print / PDF</b> — whichever's easier.</div>
+  </div>
+
+  <form id="intake">
+
+  <!-- 1. ABOUT YOU & GOALS -->
+  <section>
+    <div class="shead"><div class="snum mono">01</div><h2>About you &amp; your goals</h2></div>
+    <div class="sdesc">How you run your location and where you want to take it.</div>
+
+    <div class="q" data-name="role" data-label="Your role" data-type="text">
+      <label class="qt">What's your role, and how long have you run the Summerville location?</label>
+      <input type="text" name="role" placeholder="e.g. Owner / operator, 3 years">
+    </div>
+    <div class="q" data-name="vision12" data-label="12-month vision" data-type="textarea">
+      <label class="qt">In a sentence or two — where do you want your business 12 months from now?</label>
+      <textarea name="vision12"></textarea>
+    </div>
+    <div class="q" data-name="growth_mode" data-label="What 'growth mode' means to you" data-type="checkbox">
+      <label class="qt">What does "growth mode" mean for you right now? <span class="hint">Pick all that apply.</span></label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="growth_mode" id="g1" value="More leads / more revenue"><label for="g1">More leads / revenue</label></span>
+        <span class="opt"><input type="checkbox" name="growth_mode" id="g2" value="Less owner dependence"><label for="g2">Less owner dependence</label></span>
+        <span class="opt"><input type="checkbox" name="growth_mode" id="g3" value="Higher margins / efficiency"><label for="g3">Higher margins / efficiency</label></span>
+        <span class="opt"><input type="checkbox" name="growth_mode" id="g4" value="Bigger commercial jobs"><label for="g4">Bigger commercial jobs</label></span>
+        <span class="opt"><input type="checkbox" name="growth_mode" id="g5" value="More locations"><label for="g5">More locations</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="decision_maker" data-label="Decision autonomy on tools" data-type="radio">
+      <label class="qt">When it comes to changing the tools and systems you use day to day, can you make that call yourself?</label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="decision_maker" id="d1" value="Yes, my call"><label for="d1">Yes, my call</label></span>
+        <span class="opt"><input type="radio" name="decision_maker" id="d3" value="Mostly, with some sign-off"><label for="d3">Mostly, some sign-off</label></span>
+        <span class="opt"><input type="radio" name="decision_maker" id="d2" value="No, needs approval"><label for="d2">Needs approval</label></span>
+        <span class="opt"><input type="radio" name="decision_maker" id="d5" value="Depends what it is"><label for="d5">Depends</label></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. GHL -->
+  <section>
+    <div class="shead"><div class="snum mono">02</div><h2>Your GoHighLevel investment</h2></div>
+    <div class="sdesc">We don't sell you GHL — you have it. We make it 10x what it is today. First we need to see what you've got.</div>
+
+    <div class="q" data-name="ghl_use" data-label="What GHL is used for today" data-type="checkbox">
+      <label class="qt">What is GHL actually being used for today? <span class="hint">Check everything that's live, even if it's barely used.</span></label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h1" value="Lead capture forms"><label for="h1">Lead forms</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h2" value="Pipelines / CRM"><label for="h2">Pipelines / CRM</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h3" value="Calendars / booking"><label for="h3">Calendars / booking</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h4" value="Email"><label for="h4">Email</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h5" value="SMS"><label for="h5">SMS</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h6" value="Missed-call text-back"><label for="h6">Missed-call text-back</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h7" value="Reviews / reputation"><label for="h7">Reviews</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h8" value="Invoicing / payments"><label for="h8">Invoicing / payments</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h9" value="Websites / funnels"><label for="h9">Websites / funnels</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h10" value="Reporting / dashboards"><label for="h10">Reporting</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h11" value="Automations / workflows"><label for="h11">Workflows</label></span>
+        <span class="opt"><input type="checkbox" name="ghl_use" id="h12" value="AI tools"><label for="h12">AI tools</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="ghl_va" data-label="What the VA handles in GHL" data-type="textarea">
+      <label class="qt">Your VA runs the GHL day to day — what specifically do they handle, and roughly how many hours a week?</label>
+      <textarea name="ghl_va"></textarea>
+    </div>
+
+    <p style="font-size:12.5px;font-weight:600;color:var(--navy);margin:2px 0 11px;">Inside your GHL account, do you have access to these — and do you know how to use them? <span style="font-weight:400;font-size:10.5px;color:var(--muted-2);">No wrong answers. This just tells us what we can hand straight to you vs. set up for you.</span></p>
+    <div class="q" data-name="access_workflows" data-label="Access: workflows / automations" data-type="radio">
+      <label class="qt">Creating &amp; editing <b>workflows / automations</b></label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="access_workflows" id="aw1" value="Yes — and I know how"><label for="aw1">Yes, know how</label></span>
+        <span class="opt"><input type="radio" name="access_workflows" id="aw2" value="Yes — but not sure how"><label for="aw2">Yes, not sure how</label></span>
+        <span class="opt"><input type="radio" name="access_workflows" id="aw3" value="No access"><label for="aw3">No access</label></span>
+        <span class="opt"><input type="radio" name="access_workflows" id="aw4" value="Not sure"><label for="aw4">Not sure</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="access_sites" data-label="Access: websites / funnels" data-type="radio">
+      <label class="qt">Building <b>websites / funnels</b></label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="access_sites" id="as1" value="Yes — and I know how"><label for="as1">Yes, know how</label></span>
+        <span class="opt"><input type="radio" name="access_sites" id="as2" value="Yes — but not sure how"><label for="as2">Yes, not sure how</label></span>
+        <span class="opt"><input type="radio" name="access_sites" id="as3" value="No access"><label for="as3">No access</label></span>
+        <span class="opt"><input type="radio" name="access_sites" id="as4" value="Not sure"><label for="as4">Not sure</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="access_api" data-label="Access: API keys" data-type="radio">
+      <label class="qt">Creating <b>API keys</b> <span class="hint">— for connecting GHL to other tools</span></label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="access_api" id="ak1" value="Yes — and I know how"><label for="ak1">Yes, know how</label></span>
+        <span class="opt"><input type="radio" name="access_api" id="ak2" value="Yes — but not sure how"><label for="ak2">Yes, not sure how</label></span>
+        <span class="opt"><input type="radio" name="access_api" id="ak3" value="No access"><label for="ak3">No access</label></span>
+        <span class="opt"><input type="radio" name="access_api" id="ak4" value="Not sure"><label for="ak4">Not sure</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="ghl_subaccounts" data-label="Your GHL account setup" data-type="textarea">
+      <label class="qt">Was your GHL set up for you with templates to start from, or did you/your VA build it from scratch? <span class="hint">However much you know is fine.</span></label>
+      <textarea name="ghl_subaccounts"></textarea>
+    </div>
+    <div class="q" data-name="ghl_working" data-label="What's working in GHL" data-type="textarea">
+      <label class="qt">What's working well in GHL right now?</label>
+      <textarea name="ghl_working"></textarea>
+    </div>
+    <div class="q" data-name="ghl_broken" data-label="What's frustrating in GHL" data-type="textarea">
+      <label class="qt">What's frustrating, broken, or half-finished in GHL?</label>
+      <textarea name="ghl_broken"></textarea>
+    </div>
+    <div class="q" data-name="ghl_usage" data-label="GHL capability utilization (1-5)" data-type="radio">
+      <label class="qt">Honestly — how much of what GHL can do are you actually using?</label>
+      <div class="scale">
+        <span class="ends">Barely</span>
+        <span class="opt"><input type="radio" name="ghl_usage" id="u1" value="1"><label for="u1">1</label></span>
+        <span class="opt"><input type="radio" name="ghl_usage" id="u2" value="2"><label for="u2">2</label></span>
+        <span class="opt"><input type="radio" name="ghl_usage" id="u3" value="3"><label for="u3">3</label></span>
+        <span class="opt"><input type="radio" name="ghl_usage" id="u4" value="4"><label for="u4">4</label></span>
+        <span class="opt"><input type="radio" name="ghl_usage" id="u5" value="5"><label for="u5">5</label></span>
+        <span class="ends">Fully</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. STACK -->
+  <section>
+    <div class="shead"><div class="snum mono">03</div><h2>The rest of your stack</h2></div>
+    <div class="sdesc">Everything else the business runs on, including what corporate provides.</div>
+    <div class="q" data-name="stack" data-label="Other software in use" data-type="checkbox">
+      <label class="qt">Besides GHL, what runs the business? <span class="hint">Check all, then name the specifics below.</span></label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="stack" id="s1" value="QuickBooks / accounting"><label for="s1">QuickBooks</label></span>
+        <span class="opt"><input type="checkbox" name="stack" id="s2" value="Franchise estimating / job-costing software"><label for="s2">Franchise estimating software</label></span>
+        <span class="opt"><input type="checkbox" name="stack" id="s3" value="Jobber / Housecall / ServiceTitan"><label for="s3">Jobber / Housecall / etc.</label></span>
+        <span class="opt"><input type="checkbox" name="stack" id="s4" value="Spreadsheets"><label for="s4">Spreadsheets</label></span>
+        <span class="opt"><input type="checkbox" name="stack" id="s5" value="Paper"><label for="s5">Paper</label></span>
+        <span class="opt"><input type="checkbox" name="stack" id="s6" value="Separate scheduling tool"><label for="s6">Scheduling tool</label></span>
+        <span class="opt"><input type="checkbox" name="stack" id="s7" value="Cloud storage (Drive/Dropbox/OneDrive)"><label for="s7">Cloud storage</label></span>
+        <span class="opt"><input type="checkbox" name="stack" id="s8" value="E-signature tool"><label for="s8">E-sign</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="stack_names" data-label="Name the specific tools" data-type="textarea">
+      <label class="qt">Name the specific tools above, and which are required by corporate vs. ones you added yourself.</label>
+      <textarea name="stack_names"></textarea>
+    </div>
+    <div class="q" data-name="double_entry" data-label="Where data is re-entered" data-type="textarea">
+      <label class="qt">Where do you end up entering the same information in more than one place?</label>
+      <textarea name="double_entry"></textarea>
+    </div>
+  </section>
+
+  <!-- 4. BUSINESS PRACTICES -->
+  <section>
+    <div class="shead"><div class="snum mono">04</div><h2>Business practices &amp; operations</h2></div>
+    <div class="sdesc">The big-picture shape of how work moves through your location.</div>
+    <div class="q" data-name="mix" data-label="Residential vs commercial mix" data-type="radio">
+      <label class="qt">Your residential vs. commercial mix is roughly:</label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="mix" id="mx1" value="Mostly residential"><label for="mx1">Mostly residential</label></span>
+        <span class="opt"><input type="radio" name="mix" id="mx2" value="60/40 res/comm"><label for="mx2">~60/40 res/comm</label></span>
+        <span class="opt"><input type="radio" name="mix" id="mx3" value="50/50"><label for="mx3">~50/50</label></span>
+        <span class="opt"><input type="radio" name="mix" id="mx4" value="Mostly commercial"><label for="mx4">Mostly commercial</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="job_econ" data-label="Average job size & jobs/month" data-type="text">
+      <label class="qt">Average job size ($) and typical number of jobs per month?</label>
+      <input type="text" name="job_econ" placeholder="e.g. ~$3,500 avg, 18–22 jobs/mo">
+    </div>
+    <div class="q" data-name="season" data-label="Seasonality" data-type="text">
+      <label class="qt">Busy season vs. slow season?</label>
+      <input type="text" name="season">
+    </div>
+    <div class="q" data-name="lifecycle" data-label="Lead-to-paid lifecycle (in their words)" data-type="textarea">
+      <label class="qt">Walk us through what happens from "new lead" all the way to "paid," in your own words. <span class="hint">This is the most important answer in the whole form — be as detailed as you like.</span></label>
+      <textarea name="lifecycle" class="big" style="min-height:120px;"></textarea>
+    </div>
+    <div class="q" data-name="bottleneck" data-label="Biggest bottleneck" data-type="textarea">
+      <label class="qt">Where's the biggest bottleneck or pile-up in that flow today?</label>
+      <textarea name="bottleneck"></textarea>
+    </div>
+    <div class="q" data-name="when_away" data-label="What breaks when owner is away" data-type="textarea">
+      <label class="qt">What stalls or breaks when you're not personally available?</label>
+      <textarea name="when_away"></textarea>
+    </div>
+    <div class="q" data-name="manual" data-label="Still manual / on paper" data-type="textarea">
+      <label class="qt">What's still done on paper or by hand that probably shouldn't be?</label>
+      <textarea name="manual"></textarea>
+    </div>
+    <div class="q" data-name="numbers" data-label="KPIs tracked / wished for" data-type="textarea">
+      <label class="qt">What numbers do you track each week today — and what would you love to see at a glance but currently can't?</label>
+      <textarea name="numbers"></textarea>
+    </div>
+  </section>
+
+  <!-- 5. LEAD CAPTURE -->
+  <section>
+    <div class="shead"><div class="snum mono">05</div><h2>Lead capture</h2></div>
+    <div class="sdesc">How opportunities come in and how fast they're caught.</div>
+    <div class="q" data-name="lead_sources" data-label="Lead sources" data-type="checkbox">
+      <label class="qt">Where do leads come from? <span class="hint">Check all.</span></label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l1" value="Google / LSA"><label for="l1">Google / LSA</label></span>
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l2" value="Website"><label for="l2">Website</label></span>
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l3" value="Facebook / Meta"><label for="l3">Facebook</label></span>
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l4" value="Referrals"><label for="l4">Referrals</label></span>
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l5" value="Repeat customers"><label for="l5">Repeat customers</label></span>
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l6" value="Corporate-provided leads"><label for="l6">Corporate-provided</label></span>
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l7" value="Yard signs / door hangers"><label for="l7">Signs / door hangers</label></span>
+        <span class="opt"><input type="checkbox" name="lead_sources" id="l8" value="Angi / HomeAdvisor"><label for="l8">Angi / HomeAdvisor</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="lead_volume" data-label="Leads per month" data-type="text">
+      <label class="qt">Roughly how many leads per month?</label>
+      <input type="text" name="lead_volume">
+    </div>
+    <div class="q" data-name="response_time" data-label="Average response time" data-type="radio">
+      <label class="qt">On average, how fast does a new lead get a first response?</label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="response_time" id="r1" value="Under 5 min"><label for="r1">&lt;5 min</label></span>
+        <span class="opt"><input type="radio" name="response_time" id="r2" value="Under 30 min"><label for="r2">&lt;30 min</label></span>
+        <span class="opt"><input type="radio" name="response_time" id="r3" value="Within 2 hours"><label for="r3">&lt;2 hrs</label></span>
+        <span class="opt"><input type="radio" name="response_time" id="r4" value="Same day"><label for="r4">Same day</label></span>
+        <span class="opt"><input type="radio" name="response_time" id="r5" value="Next day or longer"><label for="r5">Next day+</label></span>
+        <span class="opt"><input type="radio" name="response_time" id="r6" value="Varies a lot"><label for="r6">Varies</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="who_responds" data-label="Who responds to leads" data-type="text">
+      <label class="qt">Who responds to a new lead — you, the VA, the crew, an auto-reply?</label>
+      <input type="text" name="who_responds">
+    </div>
+    <div class="q" data-name="afterhours" data-label="After-hours lead handling" data-type="textarea">
+      <label class="qt">What happens to leads that come in after hours or on weekends?</label>
+      <textarea name="afterhours"></textarea>
+    </div>
+    <div class="q" data-name="conversion" data-label="Known conversion rates" data-type="text">
+      <label class="qt">Do you know your lead→quote and quote→won conversion rates? <span class="hint">If yes, share them; if not, that's fine.</span></label>
+      <input type="text" name="conversion">
+    </div>
+  </section>
+
+  <!-- 6. PROJECT MGMT -->
+  <section>
+    <div class="shead"><div class="snum mono">06</div><h2>Project management &amp; job fulfillment</h2></div>
+    <div class="sdesc">How a won job actually gets scheduled, run, and finished.</div>
+    <div class="q" data-name="scheduling" data-label="Scheduling & crew assignment" data-type="textarea">
+      <label class="qt">How are jobs scheduled and crews assigned today?</label>
+      <textarea name="scheduling"></textarea>
+    </div>
+    <div class="q" data-name="crew_board" data-label="Where crews see their day" data-type="text">
+      <label class="qt">What does a crew look at to know where they're going each day?</label>
+      <input type="text" name="crew_board">
+    </div>
+    <div class="q" data-name="crew_comms" data-label="Crew communication channels" data-type="checkbox">
+      <label class="qt">How do you communicate with crews?</label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="crew_comms" id="c1" value="Group text"><label for="c1">Group text</label></span>
+        <span class="opt"><input type="checkbox" name="crew_comms" id="c2" value="Phone calls"><label for="c2">Calls</label></span>
+        <span class="opt"><input type="checkbox" name="crew_comms" id="c3" value="GHL"><label for="c3">GHL</label></span>
+        <span class="opt"><input type="checkbox" name="crew_comms" id="c4" value="Whiteboard"><label for="c4">Whiteboard</label></span>
+        <span class="opt"><input type="checkbox" name="crew_comms" id="c5" value="Franchise software"><label for="c5">Franchise software</label></span>
+        <span class="opt"><input type="checkbox" name="crew_comms" id="c6" value="Dedicated app"><label for="c6">An app</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="cust_updates" data-label="Customer updates during job" data-type="textarea">
+      <label class="qt">How does the customer get updates while the job is happening (start time, progress, completion)?</label>
+      <textarea name="cust_updates"></textarea>
+    </div>
+    <div class="q" data-name="change_orders" data-label="Change orders" data-type="textarea">
+      <label class="qt">How are change orders handled mid-job?</label>
+      <textarea name="change_orders"></textarea>
+    </div>
+    <div class="q" data-name="job_docs" data-label="Job photos / punch lists" data-type="textarea">
+      <label class="qt">Where do job photos, before/afters, and punch lists go?</label>
+      <textarea name="job_docs"></textarea>
+    </div>
+    <div class="q" data-name="visibility" data-label="Job-status visibility (1-5)" data-type="radio">
+      <label class="qt">How much can you see about a job's status <em>without</em> calling someone?</label>
+      <div class="scale">
+        <span class="ends">Nothing</span>
+        <span class="opt"><input type="radio" name="visibility" id="v1" value="1"><label for="v1">1</label></span>
+        <span class="opt"><input type="radio" name="visibility" id="v2" value="2"><label for="v2">2</label></span>
+        <span class="opt"><input type="radio" name="visibility" id="v3" value="3"><label for="v3">3</label></span>
+        <span class="opt"><input type="radio" name="visibility" id="v4" value="4"><label for="v4">4</label></span>
+        <span class="opt"><input type="radio" name="visibility" id="v5" value="5"><label for="v5">5</label></span>
+        <span class="ends">Everything</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. BILLING -->
+  <section>
+    <div class="shead"><div class="snum mono">07</div><h2>Billing &amp; payments</h2></div>
+    <div class="sdesc">How money gets requested and collected.</div>
+    <div class="q" data-name="invoice_when" data-label="When invoices are created/sent" data-type="textarea">
+      <label class="qt">When and how is an invoice created and sent? Who does it?</label>
+      <textarea name="invoice_when"></textarea>
+    </div>
+    <div class="q" data-name="deposits" data-label="Deposit policy" data-type="text">
+      <label class="qt">Do you collect deposits? If so, what %?</label>
+      <input type="text" name="deposits">
+    </div>
+    <div class="q" data-name="pay_methods" data-label="Payment methods" data-type="checkbox">
+      <label class="qt">How can customers pay?</label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="pay_methods" id="p1" value="Credit card"><label for="p1">Card</label></span>
+        <span class="opt"><input type="checkbox" name="pay_methods" id="p2" value="ACH / bank"><label for="p2">ACH</label></span>
+        <span class="opt"><input type="checkbox" name="pay_methods" id="p3" value="Check"><label for="p3">Check</label></span>
+        <span class="opt"><input type="checkbox" name="pay_methods" id="p4" value="Cash"><label for="p4">Cash</label></span>
+        <span class="opt"><input type="checkbox" name="pay_methods" id="p5" value="Financing"><label for="p5">Financing</label></span>
+        <span class="opt"><input type="checkbox" name="pay_methods" id="p6" value="Online pay link"><label for="p6">Online link</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="billing_speed" data-label="Completion to invoice to paid timing" data-type="text">
+      <label class="qt">Typical days from job done → invoice sent, and invoice → paid?</label>
+      <input type="text" name="billing_speed" placeholder="e.g. invoice same day, paid in ~10 days">
+    </div>
+    <div class="q" data-name="billing_qbo" data-label="Billing system connection" data-type="textarea">
+      <label class="qt">Is billing connected to QuickBooks or the franchise software, or is it separate / manual?</label>
+      <textarea name="billing_qbo"></textarea>
+    </div>
+  </section>
+
+  <!-- 8. AR AGING -->
+  <section>
+    <div class="shead"><div class="snum mono">08</div><h2>AR aging &amp; collections</h2></div>
+    <div class="sdesc">Money you've earned but haven't collected yet.</div>
+    <div class="q" data-name="ar_buckets" data-label="AR aging breakdown (%)" data-type="ar">
+      <label class="qt">Roughly, what share of your outstanding receivables sits in each bucket right now? <span class="hint">Best estimate — doesn't need to total exactly 100.</span></label>
+      <div class="ar-grid">
+        <div class="arq"><label>Current</label><input type="text" name="ar_current" placeholder="%"></div>
+        <div class="arq"><label>31–60 days</label><input type="text" name="ar_3160" placeholder="%"></div>
+        <div class="arq"><label>61–90 days</label><input type="text" name="ar_6190" placeholder="%"></div>
+        <div class="arq"><label>90+ days</label><input type="text" name="ar_90" placeholder="%"></div>
+      </div>
+    </div>
+    <div class="q" data-name="ar_track" data-label="How receivables are tracked" data-type="textarea">
+      <label class="qt">How do you track who owes you what today?</label>
+      <textarea name="ar_track"></textarea>
+    </div>
+    <div class="q" data-name="ar_reminders" data-label="Payment reminders automated?" data-type="radio">
+      <label class="qt">Are payment reminders automated or manual?</label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="ar_reminders" id="ar1" value="Fully automated"><label for="ar1">Automated</label></span>
+        <span class="opt"><input type="radio" name="ar_reminders" id="ar2" value="Some automated"><label for="ar2">Some</label></span>
+        <span class="opt"><input type="radio" name="ar_reminders" id="ar3" value="All manual"><label for="ar3">All manual</label></span>
+        <span class="opt"><input type="radio" name="ar_reminders" id="ar4" value="We don't really chase"><label for="ar4">We don't really chase</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="collections" data-label="Collections process" data-type="textarea">
+      <label class="qt">What's your process when someone hasn't paid? Any bad situations or write-offs in the last year?</label>
+      <textarea name="collections"></textarea>
+    </div>
+    <div class="q" data-name="ar_confidence" data-label="Confidence nothing slips (1-5)" data-type="radio">
+      <label class="qt">How confident are you that nothing slips through unbilled or uncollected?</label>
+      <div class="scale">
+        <span class="ends">Not at all</span>
+        <span class="opt"><input type="radio" name="ar_confidence" id="ac1" value="1"><label for="ac1">1</label></span>
+        <span class="opt"><input type="radio" name="ar_confidence" id="ac2" value="2"><label for="ac2">2</label></span>
+        <span class="opt"><input type="radio" name="ar_confidence" id="ac3" value="3"><label for="ac3">3</label></span>
+        <span class="opt"><input type="radio" name="ar_confidence" id="ac4" value="4"><label for="ac4">4</label></span>
+        <span class="opt"><input type="radio" name="ar_confidence" id="ac5" value="5"><label for="ac5">5</label></span>
+        <span class="ends">Totally</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. CONTRACTS -->
+  <section>
+    <div class="shead"><div class="snum mono">09</div><h2>Contracts &amp; proposals</h2></div>
+    <div class="sdesc">How agreements get created, signed, and stored.</div>
+    <div class="q" data-name="proposal_process" data-label="Proposal/contract creation" data-type="textarea">
+      <label class="qt">How are proposals and contracts created today, and with what tool?</label>
+      <textarea name="proposal_process"></textarea>
+    </div>
+    <div class="q" data-name="esign" data-label="E-signature use" data-type="radio">
+      <label class="qt">Do you use e-signature?</label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="esign" id="e1" value="Yes, always"><label for="e1">Yes, always</label></span>
+        <span class="opt"><input type="radio" name="esign" id="e2" value="Sometimes"><label for="e2">Sometimes</label></span>
+        <span class="opt"><input type="radio" name="esign" id="e3" value="No, paper/email"><label for="e3">No</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="contract_type" data-label="Template structure" data-type="radio">
+      <label class="qt">Do you work off per-job contracts, a master agreement, or both?</label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="contract_type" id="ct1" value="Per-job"><label for="ct1">Per-job</label></span>
+        <span class="opt"><input type="radio" name="contract_type" id="ct2" value="Master agreement"><label for="ct2">Master</label></span>
+        <span class="opt"><input type="radio" name="contract_type" id="ct3" value="Both"><label for="ct3">Both</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="contract_diff" data-label="Res vs commercial contract differences" data-type="textarea">
+      <label class="qt">How do residential and commercial contracts differ for you (terms, approvals, complexity)?</label>
+      <textarea name="contract_diff"></textarea>
+    </div>
+    <div class="q" data-name="contract_store" data-label="Where signed contracts live" data-type="text">
+      <label class="qt">Where do signed contracts end up?</label>
+      <input type="text" name="contract_store">
+    </div>
+  </section>
+
+  <!-- 10. DOCUMENTS -->
+  <section>
+    <div class="shead"><div class="snum mono">10</div><h2>Document management</h2></div>
+    <div class="sdesc">Where the paperwork lives and whether you can find it.</div>
+    <div class="q" data-name="doc_homes" data-label="Where documents live" data-type="checkbox">
+      <label class="qt">Where do documents live today?</label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh1" value="Google Drive"><label for="dh1">Google Drive</label></span>
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh2" value="Dropbox"><label for="dh2">Dropbox</label></span>
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh3" value="OneDrive / SharePoint"><label for="dh3">OneDrive</label></span>
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh4" value="GHL"><label for="dh4">GHL</label></span>
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh5" value="Franchise software"><label for="dh5">Franchise software</label></span>
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh6" value="Email"><label for="dh6">Email</label></span>
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh7" value="Paper files"><label for="dh7">Paper</label></span>
+        <span class="opt"><input type="checkbox" name="doc_homes" id="dh8" value="Local computer"><label for="dh8">Local computer</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="doc_types" data-label="Documents handled regularly" data-type="checkbox">
+      <label class="qt">Which documents do you deal with regularly?</label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt1" value="Estimates"><label for="dt1">Estimates</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt2" value="Contracts"><label for="dt2">Contracts</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt3" value="Invoices"><label for="dt3">Invoices</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt4" value="COIs / insurance"><label for="dt4">COIs / insurance</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt5" value="W-9s"><label for="dt5">W-9s</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt6" value="Lien waivers"><label for="dt6">Lien waivers</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt7" value="Job photos"><label for="dt7">Job photos</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt8" value="Warranties"><label for="dt8">Warranties</label></span>
+        <span class="opt"><input type="checkbox" name="doc_types" id="dt9" value="Licenses / permits"><label for="dt9">Licenses / permits</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="doc_shared" data-label="Standardized across locations?" data-type="textarea">
+      <label class="qt">Are documents and templates standardized/shared across locations, or does each location do its own thing?</label>
+      <textarea name="doc_shared"></textarea>
+    </div>
+    <div class="q" data-name="doc_findable" data-label="Findable in under a minute?" data-type="radio">
+      <label class="qt">Could you find any specific document in under a minute right now?</label>
+      <div class="opts">
+        <span class="opt"><input type="radio" name="doc_findable" id="df1" value="Yes"><label for="df1">Yes</label></span>
+        <span class="opt"><input type="radio" name="doc_findable" id="df2" value="Most of the time"><label for="df2">Mostly</label></span>
+        <span class="opt"><input type="radio" name="doc_findable" id="df3" value="No, it's a hunt"><label for="df3">No, it's a hunt</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="compliance_docs" data-label="Compliance docs to track" data-type="textarea">
+      <label class="qt">Any compliance documents (licenses, insurance, certifications) you have to keep current and track expirations on?</label>
+      <textarea name="compliance_docs"></textarea>
+    </div>
+  </section>
+
+  <!-- 11. WHAT YOU WANT -->
+  <section style="border:1px solid var(--line-2);background:linear-gradient(165deg,var(--teal-tint),var(--bg) 40%);">
+    <div class="shead"><div class="snum mono">11</div><h2>What you want from your systems</h2></div>
+    <div class="sdesc">The outcomes that would actually make a difference for you.</div>
+    <div class="q" data-name="tenx" data-label="What you wish your systems did" data-type="textarea">
+      <label class="qt">What do you wish your systems did for you that they don't today? <span class="hint">GHL or anything else — dream a little.</span></label>
+      <textarea name="tenx" class="big"></textarea>
+    </div>
+    <div class="q" data-name="ai_help" data-label="Where you lose the most time" data-type="checkbox">
+      <label class="qt">Where do you lose the most time on repetitive work you'd love to hand off?</label>
+      <div class="opts">
+        <span class="opt"><input type="checkbox" name="ai_help" id="a1" value="Replying to leads 24/7"><label for="a1">Replying to leads</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a2" value="Booking estimates"><label for="a2">Booking estimates</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a3" value="Drafting quotes"><label for="a3">Drafting quotes</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a4" value="Follow-up"><label for="a4">Follow-up</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a5" value="Review requests"><label for="a5">Review requests</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a6" value="Answering calls / FAQ"><label for="a6">Answering calls / FAQ</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a7" value="Reporting / knowing my numbers"><label for="a7">Knowing my numbers</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a8" value="Crew coordination"><label for="a8">Crew coordination</label></span>
+        <span class="opt"><input type="checkbox" name="ai_help" id="a9" value="Document handling / paperwork"><label for="a9">Paperwork</label></span>
+      </div>
+    </div>
+    <div class="q" data-name="win90" data-label="Biggest-difference change" data-type="textarea">
+      <label class="qt">Over the next few months, what one change would make the biggest difference in how the business runs day to day?</label>
+      <textarea name="win90"></textarea>
+    </div>
+    <div class="q" data-name="anything" data-label="Anything else" data-type="textarea">
+      <label class="qt">Anything we didn't ask that we should know?</label>
+      <textarea name="anything"></textarea>
+    </div>
+  </section>
+
+  </form>
+
+  <p class="savednote mono" id="savedNote">Progress auto-saves on this device as you type.</p>
+</div>
+
+<footer>
+  <div class="submit-card">
+    <h3>Done? Send it back to SysSential.</h3>
+    <p>Tap <b>Email my answers</b> — it opens a pre-filled email straight to us, just hit send. Prefer to keep a copy? Use <b>Download</b> or <b>Print / PDF</b>. We'll turn this into a clear plan tailored to your business.</p>
+    <div class="sb">
+      <button class="btn teal" onclick="emailAnswers()">✉ Email my answers to SysSential</button>
+      <button class="btn" style="background:transparent;color:#fff;border-color:#33486B;" onclick="downloadJSON()">Download a copy</button>
+      <button class="btn" style="background:transparent;color:#fff;border-color:#33486B;" onclick="window.print()">Print / PDF</button>
+    </div>
+    <div class="contact mono">SysSential LLC · <a href="https://www.syssential.com">syssential.com</a> · <a href="mailto:hello@syssential.com">hello@syssential.com</a></div>
+  </div>
+</footer>
+
+<script>
+  var STORE='syssential_richards_intake_v1';
+  var RETURN_EMAIL='tdantzler@syssential.com'; // <-- Josh's answers are emailed here.
+
+  function allFields(){
+    return document.querySelectorAll('#intake input, #intake textarea, #intake select, #m_name, #m_loc, #m_date');
+  }
+
+  function save(){
+    try{
+      var data={};
+      allFields().forEach(function(el){
+        var key=el.id||el.name;
+        if(!key) return;
+        if(el.type==='checkbox'||el.type==='radio'){ if(el.checked) data[key+'::'+el.value]=true; }
+        else { data[key]=el.value; }
+      });
+      localStorage.setItem(STORE, JSON.stringify(data));
+      flashSaved();
+    }catch(e){/* storage unavailable in some sandboxes — fine */}
+  }
+
+  function restore(){
+    try{
+      var raw=localStorage.getItem(STORE); if(!raw) return;
+      var data=JSON.parse(raw);
+      allFields().forEach(function(el){
+        var key=el.id||el.name;
+        if(el.type==='checkbox'||el.type==='radio'){ if(data[key+'::'+el.value]) el.checked=true; }
+        else if(data[key]!==undefined){ el.value=data[key]; }
+      });
+    }catch(e){}
+  }
+
+  var flashT;
+  function flashSaved(){
+    var n=document.getElementById('savedNote');
+    n.textContent='✓ Saved'; clearTimeout(flashT);
+    flashT=setTimeout(function(){n.textContent='Progress auto-saves on this device as you type.';},1200);
+  }
+
+  function updateProgress(){
+    var qs=document.querySelectorAll('#intake .q'); var done=0;
+    qs.forEach(function(q){
+      var filled=false;
+      q.querySelectorAll('input[type=text],input[type=number],textarea,select').forEach(function(el){ if(el.value.trim()) filled=true; });
+      q.querySelectorAll('input[type=checkbox],input[type=radio]').forEach(function(el){ if(el.checked) filled=true; });
+      if(filled) done++;
+    });
+    var pct=qs.length? Math.round(done/qs.length*100):0;
+    document.getElementById('progFill').style.width=pct+'%';
+    document.getElementById('progPct').textContent=pct+'%';
+  }
+
+  function collect(){
+    var meta={
+      name:document.getElementById('m_name').value,
+      location:document.getElementById('m_loc').value,
+      date:document.getElementById('m_date').value
+    };
+    var answers=[];
+    document.querySelectorAll('#intake .q').forEach(function(q){
+      var label=q.getAttribute('data-label')||q.getAttribute('data-name');
+      var type=q.getAttribute('data-type');
+      var val;
+      if(type==='checkbox'){
+        val=[]; q.querySelectorAll('input:checked').forEach(function(el){val.push(el.value);}); val=val.join(', ');
+      } else if(type==='radio'){
+        var c=q.querySelector('input:checked'); val=c?c.value:'';
+      } else if(type==='ar'){
+        var parts=[]; q.querySelectorAll('input').forEach(function(el){ if(el.value.trim()) parts.push(el.previousElementSibling.textContent+': '+el.value); }); val=parts.join('  |  ');
+      } else {
+        var f=q.querySelector('input,textarea,select'); val=f?f.value:'';
+      }
+      answers.push({q:label, a:val});
+    });
+    return {meta:meta, answers:answers};
+  }
+
+  function downloadJSON(){
+    var payload=collect();
+    var fname='RichardsPainting_Intake_'+((payload.meta.name||'response').replace(/[^a-z0-9]/gi,'_'))+'.json';
+    var blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+
+  function emailAnswers(){
+    var p=collect();
+    var subj='Richard\'s Painting Intake — '+(p.meta.name||'')+(p.meta.location?(' ('+p.meta.location+')'):'');
+    var lines=[];
+    lines.push('RICHARD\'S PAINTING — SysSential Operations & Growth Intake');
+    lines.push('Name: '+p.meta.name+'   Location: '+p.meta.location+'   Date: '+p.meta.date);
+    lines.push('');
+    p.answers.forEach(function(x){ lines.push(x.q+':'); lines.push((x.a||'(blank)')); lines.push(''); });
+    var body=lines.join('\n');
+    var href='mailto:'+encodeURIComponent(RETURN_EMAIL)+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);
+    if(href.length>1800){
+      alert('Nice and thorough! Some email apps trim very long messages, so we also saved a copy to your downloads. If the email looks cut off when it opens, just attach that file before sending.');
+      try{ downloadJSON(); }catch(e){}
+    }
+    window.location.href=href;
+  }
+
+  function copyAll(){
+    var p=collect(); var lines=[];
+    lines.push('RICHARD\'S PAINTING — SysSential Operations & Growth Intake');
+    lines.push('Name: '+p.meta.name+'   Location: '+p.meta.location+'   Date: '+p.meta.date);
+    lines.push('');
+    p.answers.forEach(function(x){ lines.push('• '+x.q+'\n   '+(x.a||'(blank)')+'\n'); });
+    var text=lines.join('\n');
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){alert('Answers copied to clipboard.');},function(){fallbackCopy(text);});
+    } else { fallbackCopy(text); }
+  }
+  function fallbackCopy(text){
+    var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select();
+    try{document.execCommand('copy');alert('Answers copied to clipboard.');}catch(e){alert('Copy not supported — use Download instead.');}
+    document.body.removeChild(ta);
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    restore(); updateProgress();
+    document.addEventListener('input',function(){ save(); updateProgress(); });
+    document.addEventListener('change',function(){ save(); updateProgress(); });
+  });
+</script>
+</body>
+</html>
