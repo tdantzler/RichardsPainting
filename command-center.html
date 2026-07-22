@@ -1,0 +1,651 @@
+<title>Richard's Painting — Command Center</title>
+<script>window.__RP_CONFIG__={opsApi:"https://n8n.srv1047408.hstgr.cloud/webhook/rp-ops-state",feedbackApi:"https://n8n.srv1047408.hstgr.cloud/webhook/rp-feedback"};</script>
+<style>
+  :root{
+    --bg:#f4f7f8; --surface:#ffffff; --surface-2:#eef3f5; --raise:0 1px 2px rgba(16,32,44,.06),0 8px 24px rgba(16,32,44,.05);
+    --ink:#0f1c24; --ink-2:#3f5a68; --muted:#748b98; --border:#e3eaed;
+    --accent:#0a8f7f; --accent-soft:#d8f3ee; --accent-ink:#076658;
+    --good:#1f9d6b; --good-soft:#dcf1e8; --warn:#b9741a; --warn-soft:#f6e9d5; --crit:#cf3f3c; --crit-soft:#f8e0df;
+    --info:#2b6cb0; --info-soft:#dbe9f6;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0b151d; --surface:#10202b; --surface-2:#0e1c25; --raise:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    --ink:#e9f1f4; --ink-2:#aec4cf; --muted:#6f8794; --border:#1e3441;
+    --accent:#2fe4c2; --accent-soft:#0f3a37; --accent-ink:#2fe4c2;
+    --good:#3fd08c; --good-soft:#123528; --warn:#e6a94e; --warn-soft:#3a2c12; --crit:#f0605c; --crit-soft:#3a1817;
+    --info:#6bb0f0; --info-soft:#14293b;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0b151d; --surface:#10202b; --surface-2:#0e1c25; --raise:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+    --ink:#e9f1f4; --ink-2:#aec4cf; --muted:#6f8794; --border:#1e3441;
+    --accent:#2fe4c2; --accent-soft:#0f3a37; --accent-ink:#2fe4c2;
+    --good:#3fd08c; --good-soft:#123528; --warn:#e6a94e; --warn-soft:#3a2c12; --crit:#f0605c; --crit-soft:#3a1817;
+    --info:#6bb0f0; --info-soft:#14293b;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f7f8; --surface:#ffffff; --surface-2:#eef3f5; --raise:0 1px 2px rgba(16,32,44,.06),0 8px 24px rgba(16,32,44,.05);
+    --ink:#0f1c24; --ink-2:#3f5a68; --muted:#748b98; --border:#e3eaed;
+    --accent:#0a8f7f; --accent-soft:#d8f3ee; --accent-ink:#076658;
+    --good:#1f9d6b; --good-soft:#dcf1e8; --warn:#b9741a; --warn-soft:#f6e9d5; --crit:#cf3f3c; --crit-soft:#f8e0df;
+    --info:#2b6cb0; --info-soft:#dbe9f6;
+  }
+  /* ---- design skins (cosmetic only; structure + logic unchanged) ---- */
+  :root[data-skin="field"]{
+    --bg:#f2ece1; --surface:#fffdf8; --surface-2:#eee4d3; --raise:0 1px 2px rgba(60,40,20,.08),0 8px 22px rgba(60,40,20,.09);
+    --ink:#241a10; --ink-2:#5a4632; --muted:#8a7458; --border:#e0d3bd;
+    --accent:#c2551d; --accent-soft:#f6e2d1; --accent-ink:#9c3f12;
+    --good:#4a7d3a; --good-soft:#e3eed7; --warn:#b9741a; --warn-soft:#f6e9d5; --crit:#b33a2f; --crit-soft:#f6dcd6;
+    --info:#3f6f8a; --info-soft:#dde9ef;
+    --font:"Arial Narrow","Helvetica Neue Condensed",ui-sans-serif,system-ui,sans-serif;
+  }
+  :root[data-skin="field"] h3.ttl,:root[data-skin="field"] .kpi .label{letter-spacing:.08em}
+  :root[data-skin="exec"]{
+    --bg:#0d1117; --surface:#161d29; --surface-2:#0f1824; --raise:0 1px 2px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);
+    --ink:#e8eef6; --ink-2:#aab7c6; --muted:#6f7d8c; --border:#223044;
+    --accent:#4f8cff; --accent-soft:#16233b; --accent-ink:#8fb6ff;
+    --good:#3fbf80; --good-soft:#123020; --warn:#e0a44a; --warn-soft:#33280f; --crit:#ef5f5b; --crit-soft:#331817;
+    --info:#4f8cff; --info-soft:#16233b;
+  }
+  :root[data-skin="exec"] .card,:root[data-skin="exec"] .kpi{border-radius:10px}
+  :root[data-skin="lcars"]{
+    --bg:#000000; --surface:#0c0c0f; --surface-2:#15151a; --raise:none;
+    --ink:#ffd38a; --ink-2:#ff9c00; --muted:#c99a5a; --border:#000000;
+    --accent:#ff9c00; --accent-soft:#3a2500; --accent-ink:#ffb84d;
+    --good:#66cc66; --good-soft:#0f2a0f; --warn:#ffcc66; --warn-soft:#332600; --crit:#ff6f61; --crit-soft:#331410;
+    --info:#cc99ff; --info-soft:#241433;
+    --font:"Arial Narrow","Helvetica Neue Condensed",ui-sans-serif,system-ui,sans-serif;
+  }
+  :root[data-skin="lcars"] body{background:#000}
+  :root[data-skin="lcars"] .card,:root[data-skin="lcars"] .kpi,:root[data-skin="lcars"] .weather,:root[data-skin="lcars"] nav.tabs,:root[data-skin="lcars"] .lane{border:0;border-left:9px solid var(--accent);border-radius:6px 20px 20px 6px}
+  :root[data-skin="lcars"] h3.ttl,:root[data-skin="lcars"] .kpi .label,:root[data-skin="lcars"] nav.tabs button,:root[data-skin="lcars"] th{text-transform:uppercase;letter-spacing:.14em}
+  :root[data-skin="lcars"] .btn-primary,:root[data-skin="lcars"] .fab,:root[data-skin="lcars"] .btn.pri,:root[data-skin="lcars"] .qbtn,:root[data-skin="lcars"] .pill{border-radius:20px}
+  :root[data-skin="lcars"] .brand small{color:var(--warn)}
+  :root[data-skin="lcars"] .kpi .val,:root[data-skin="lcars"] .weather .big{color:var(--accent-ink)}
+
+  .skinsel{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink);font:inherit;font-weight:650;font-size:13px;padding:8px 10px;border-radius:9px;cursor:pointer}
+  .setp{position:fixed;top:62px;right:20px;bottom:auto}
+  .setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+  .setrow #rainval{font-weight:750;font-size:16px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .caps{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:6px 18px;box-shadow:var(--raise);margin-bottom:14px}
+  .caps>summary{cursor:pointer;font-weight:700;font-size:14px;padding:10px 0;list-style:none;display:flex;align-items:center;gap:8px}
+  .caps>summary::-webkit-details-marker{display:none}
+  .caps>summary::before{content:"▸";color:var(--accent-ink);transition:.15s}
+  .caps[open]>summary::before{transform:rotate(90deg)}
+  .capgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:6px 0 14px}
+  .cap{background:var(--surface-2);border-radius:10px;padding:11px 12px}
+  .cap b{display:block;font-size:13px;margin-bottom:3px}
+  .cap span{font-size:12px;color:var(--ink-2);font-weight:600;line-height:1.35}
+  @media (max-width:900px){.capgrid{grid-template-columns:1fr 1fr}}
+  @media (max-width:640px){.capgrid{grid-template-columns:1fr}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:96px}
+  .tnum{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1240px;margin:0 auto;padding:18px 20px}
+
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em}
+  .brand .dot{width:11px;height:11px;border-radius:3px;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .brand small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+  .spacer{flex:1}
+  .date{font-size:13px;color:var(--muted);font-weight:600}
+  .chip{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border)}
+  .chip.demo{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+  .iconbtn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);width:36px;height:36px;border-radius:9px;cursor:pointer;font-size:15px;display:grid;place-items:center}
+  .iconbtn:hover{color:var(--ink);border-color:var(--muted)}
+
+  nav.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;box-shadow:var(--raise);overflow:auto}
+  nav.tabs button{appearance:none;border:0;background:transparent;color:var(--ink-2);font:inherit;font-weight:650;font-size:14px;padding:9px 15px;border-radius:9px;cursor:pointer;white-space:nowrap}
+  nav.tabs button.on{background:var(--accent-soft);color:var(--accent-ink)}
+  .newmenu{position:relative}
+  .btn-primary{appearance:none;border:0;cursor:pointer;background:var(--accent);color:#04231f;font-weight:750;font-size:14px;padding:10px 15px;border-radius:10px;display:flex;align-items:center;gap:7px}
+  :root[data-theme="dark"] .btn-primary{color:#04231f}
+  .menu{position:absolute;right:0;top:46px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--raise);padding:6px;min-width:210px;z-index:30;display:none}
+  .menu.open{display:block}
+  .menu button{display:flex;width:100%;text-align:left;gap:9px;align-items:center;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:600;font-size:14px;padding:10px 11px;border-radius:8px;cursor:pointer}
+  .menu button:hover{background:var(--surface-2)}
+
+  .conceptbar{display:flex;align-items:center;gap:9px;background:var(--info-soft);color:var(--info);border-radius:10px;padding:9px 13px;font-size:12.5px;font-weight:600;margin:12px 0}
+
+  /* generic */
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;box-shadow:var(--raise)}
+  .col-3{grid-column:span 3}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
+  h3.ttl{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px}
+  h3.ttl .count{margin-left:auto;color:var(--ink-2);background:var(--surface-2);border-radius:999px;padding:2px 9px;font-size:12px;letter-spacing:0}
+  .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border)}
+  .row:first-of-type{border-top:0}
+  .name{font-weight:650}.meta{color:var(--muted);font-size:12.5px;font-weight:600}.right{margin-left:auto;text-align:right}
+  .money{font-weight:750}.late{color:var(--crit);font-weight:700;font-size:12px}
+  .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.02em;white-space:nowrap}
+  .tag.int{color:var(--accent-ink);background:var(--accent-soft)}.tag.ext{color:var(--warn);background:var(--warn-soft)}
+  .tag.info{color:var(--info);background:var(--info-soft)}.tag.crit{color:var(--crit);background:var(--crit-soft)}.tag.good{color:var(--good);background:var(--good-soft)}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:13px;padding:7px 13px;border-radius:999px}
+  .pill .led{width:8px;height:8px;border-radius:50%;background:currentColor}
+  .pill.ok{color:var(--good);background:var(--good-soft)}.pill.no{color:var(--crit);background:var(--crit-soft)}
+
+  /* overview */
+  .weather{display:flex;align-items:center;gap:18px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;box-shadow:var(--raise);margin-bottom:14px}
+  .weather .big{font-size:30px;font-weight:750;letter-spacing:-.02em;display:flex;align-items:baseline;gap:8px}
+  .weather .sum{color:var(--ink-2);font-weight:600;font-size:16px}
+  .weather .meta{display:flex;gap:16px;flex-wrap:wrap}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 16px;box-shadow:var(--raise);position:relative;overflow:hidden}
+  .kpi .stripe{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+  .kpi.crit .stripe{background:var(--crit)}.kpi.good .stripe{background:var(--good)}.kpi.warn .stripe{background:var(--warn)}
+  .kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:8px}
+  .kpi .val{font-size:26px;font-weight:750;letter-spacing:-.02em;line-height:1}
+  .kpi.crit .val{color:var(--crit)}
+  .kpi .sub{font-size:12px;color:var(--ink-2);font-weight:600;margin-top:6px}
+  .quickbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .qbtn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink);font:inherit;font-weight:650;font-size:13px;padding:9px 13px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:var(--raise)}
+  .qbtn:hover{border-color:var(--accent);color:var(--accent-ink)}
+  .qbtn .i{color:var(--accent-ink)}
+
+  /* pipeline board */
+  .board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,1fr);gap:12px;overflow-x:auto;padding-bottom:6px}
+  .lane{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:10px;min-height:120px}
+  .lane h4{margin:2px 4px 10px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:6px}
+  .lane h4 .n{margin-left:auto;background:var(--surface);border-radius:999px;padding:1px 8px;color:var(--ink-2)}
+  .jobcard{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px 12px;margin-bottom:8px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .jobcard:hover{border-color:var(--accent)}
+  .jobcard .jn{font-weight:700;font-size:13.5px;margin-bottom:3px}
+  .jobcard .jm{color:var(--muted);font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .jobcard .jf{display:flex;align-items:center;gap:6px;margin-top:8px}
+  .jobcard .val{margin-left:auto;font-weight:750;font-size:13px}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border)}
+  td{padding:11px 10px;border-bottom:1px solid var(--border);font-weight:550}
+  tr:last-child td{border-bottom:0}
+  .tbl-wrap{overflow-x:auto}
+
+  /* schedule */
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+  .wday{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:10px;min-height:150px}
+  .wday .wh{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .wday .wd{font-weight:700;font-size:13px}.wday .wt{font-size:11px;color:var(--muted);font-weight:600}
+  .wxdot{width:9px;height:9px;border-radius:50%}
+  .wxdot.ok{background:var(--good)}.wxdot.no{background:var(--crit)}
+  .schitem{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:7px 8px;margin-bottom:6px;font-size:12px;font-weight:650}
+  .schitem .sm{color:var(--muted);font-size:11px;font-weight:600}
+  .suggest{background:var(--info-soft);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .suggest .sx{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+  .suggest b{color:var(--ink)}
+
+  /* buttons */
+  .btn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink);font:inherit;font-weight:650;padding:9px 13px;border-radius:10px;cursor:pointer;font-size:13px}
+  .btn:hover{border-color:var(--muted)}
+  .btn.pri{background:var(--accent);color:#04231f;border-color:transparent;font-weight:750}
+  .btn.sm{padding:6px 10px;font-size:12px}
+  .btn.warn{color:var(--warn)} .btn.crit{color:var(--crit)}
+
+  /* drawer + modal */
+  .scrim{position:fixed;inset:0;background:rgba(6,14,20,.5);z-index:50;display:none}
+  .scrim.open{display:block}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);background:var(--surface);border-left:1px solid var(--border);z-index:51;transform:translateX(100%);transition:.25s;overflow:auto;padding:20px}
+  .drawer.open{transform:none}
+  .drawer h2{margin:0 0 4px;font-size:20px}
+  .drawer .sub{color:var(--muted);font-weight:600;margin-bottom:16px}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--border);font-size:14px}
+  .kv .k{color:var(--muted);font-weight:600}.kv .v{font-weight:650;text-align:right}
+  .stageflow{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0}
+  .stageflow span{font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:6px;background:var(--surface-2);color:var(--muted)}
+  .stageflow span.done{background:var(--good-soft);color:var(--good)}
+  .stageflow span.cur{background:var(--accent-soft);color:var(--accent-ink)}
+  .actions{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+
+  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-48%);z-index:52;width:min(520px,calc(100vw - 32px));max-height:88vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--raise);padding:20px;opacity:0;pointer-events:none;transition:.2s}
+  .modal.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+  .modal h2{margin:0 0 14px;font-size:18px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:5px}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font:inherit;background:var(--bg);color:var(--ink)}
+  .field.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .lineitems .li{display:grid;grid-template-columns:1fr 70px 90px 28px;gap:8px;margin-bottom:8px;align-items:center}
+  .modal .foot{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+  .total{display:flex;justify-content:space-between;font-weight:750;font-size:16px;padding-top:10px;border-top:1px solid var(--border);margin-top:6px}
+
+  footer{max-width:1240px;margin:18px auto 0;padding:0 20px;color:var(--muted);font-size:12px;font-weight:600}
+
+  .fab{position:fixed;right:20px;bottom:20px;z-index:40;appearance:none;border:0;cursor:pointer;background:var(--accent);color:#04231f;font-weight:750;font-size:14px;padding:13px 18px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:8px}
+  .panel{position:fixed;right:20px;bottom:78px;z-index:41;width:min(360px,calc(100vw - 40px));background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--raise);padding:16px;display:none}
+  .panel.open{display:block}
+  .panel h4{margin:0 0 4px;font-size:15px}.panel p{margin:0 0 10px;font-size:12.5px;color:var(--muted)}
+  .panel textarea{width:100%;min-height:80px;resize:vertical;border:1px solid var(--border);border-radius:10px;padding:10px;font:inherit;background:var(--bg);color:var(--ink)}
+  .panel .acts{display:flex;gap:8px;margin-top:10px}
+  .btn.rec{color:var(--crit)}.btn.rec.on{background:var(--crit-soft);border-color:transparent}
+  .btn.send{margin-left:auto;background:var(--accent);color:#04231f;border-color:transparent;font-weight:750}
+  .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(10px);z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:650;font-size:13px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.col-3,.col-4,.col-6,.col-8{grid-column:span 12}.week{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="dot"></span><div>Richard's Painting<small>Command Center · SysSential</small></div></div>
+    <span class="spacer"></span>
+    <span class="date" id="date">—</span>
+    <span class="chip demo">Concept demo</span>
+    <div class="newmenu">
+      <button class="btn-primary" id="newbtn">+ New ▾</button>
+      <div class="menu" id="newmenu">
+        <button data-new="customer"><span class="i">👤</span> New Customer</button>
+        <button data-new="opportunity"><span class="i">✨</span> New Opportunity</button>
+        <button data-new="quote"><span class="i">🧾</span> Build Quote</button>
+        <button data-new="schedule"><span class="i">📅</span> Schedule a Job</button>
+      </div>
+    </div>
+    <select id="skin" class="skinsel" title="Design skin" aria-label="Design skin">
+      <option value="default">Skin: SysSential</option>
+      <option value="field">Skin: Field / Trades</option>
+      <option value="exec">Skin: Executive</option>
+      <option value="lcars">Skin: LCARS (fun)</option>
+    </select>
+    <button class="iconbtn" id="gear" title="Settings">⚙</button>
+    <button class="iconbtn" id="theme" title="Toggle theme">◐</button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-view="overview" class="on">Overview</button>
+    <button data-view="pipeline">Pipeline</button>
+    <button data-view="schedule">Schedule &amp; Dispatch</button>
+    <button data-view="materials">Materials</button>
+    <button data-view="customers">Customers</button>
+  </nav>
+
+  <div class="conceptbar">◆ Interactive concept — every button works against sample data to show the flow. Live GoHighLevel + QuickBooks wiring drops in behind these same controls.</div>
+
+  <main id="view"></main>
+
+  <footer>Weather is live from the National Weather Service. Everything else is sample data demonstrating the concept. <span id="updated"></span></footer>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+<div class="modal" id="modal"></div>
+
+<div class="panel setp" id="setpanel">
+  <h4>Weather risk threshold</h4>
+  <p>Flag exterior work as HOLD when the rain chance is at or above this. Recommended: 40%. Your call, not ours.</p>
+  <input type="range" id="rain" min="0" max="100" step="5">
+  <div class="setrow"><span id="rainval">40%</span><button class="btn send" id="setsave">Done</button></div>
+</div>
+<button class="fab" id="fab">✎ Feedback</button>
+<div class="panel" id="panel">
+  <h4>What's working, what's not?</h4>
+  <p>Be brutal — fastest way to the finish line. Tap the mic to talk it out.</p>
+  <textarea id="fbtext" placeholder="Type or dictate your note…"></textarea>
+  <div class="acts"><button class="btn rec" id="mic">● Record</button><button class="btn send" id="send">Send</button></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s,r=document)=>r.getElementById?r.getElementById(s):r.querySelector(s);
+const el = (s)=>document.getElementById(s);
+const usd = n => "$"+(Math.round(n||0)).toLocaleString("en-US");
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(m){const t=el("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2800);}
+
+/* ---------- live weather island (n8n replaces window.__OPS_STATE__) ---------- */
+const OPS = window.__OPS_STATE__ || { date:"2026-07-16",
+  weather:{ today:{summary:"Mostly sunny, slight chance of PM storms",highF:94,windMph:"0–6 mph",precipChance:24,exteriorOk:true},
+    next3:[{date:"Fri",summary:"Sunny",precipChance:10,exteriorOk:true},{date:"Sat",summary:"Slight chance PM storms",precipChance:25,exteriorOk:true},{date:"Sun",summary:"Chance of storms",precipChance:55,exteriorOk:false}] } };
+
+/* ---- production config: inject window.__RP_CONFIG__ = {opsApi, feedbackApi} when hosted live. Falls back to demo. ---- */
+const CFG = window.__RP_CONFIG__ || {};
+const OPS_API = CFG.opsApi || null;
+
+/* ---------- mock company state ---------- */
+const STAGES = ["lead","estimate","quoted","scheduled","in_progress","invoiced","paid"];
+const STAGE_LABEL = {lead:"Lead",estimate:"Estimate",quoted:"Quoted",scheduled:"Scheduled",in_progress:"In Progress",invoiced:"Invoiced",paid:"Paid"};
+
+const DB = {
+  customers:[
+    {id:"C1",name:"Sarah Henderson",phone:"843-555-0112",email:"sh@example.com",address:"12 Oak Ln, Summerville"},
+    {id:"C2",name:"Cedar Office Partners",phone:"843-555-0140",email:"ops@cedaroffice.com",address:"300 Cedar Blvd, Summerville"},
+    {id:"C3",name:"Dan Maple",phone:"843-555-0177",email:"dmaple@example.com",address:"88 Maple St, Summerville"},
+    {id:"C4",name:"Coastal Property Mgmt",phone:"843-555-0190",email:"ap@coastalpm.com",address:"5 Marina Dr, Charleston"},
+    {id:"C5",name:"Rick Rutledge",phone:"843-555-0203",email:"rrut@example.com",address:"41 Pine Trace, Summerville"}
+  ],
+  crews:[
+    {id:"A",name:"Crew A",members:["Luis","Miguel","Dave"]},
+    {id:"B",name:"Crew B",members:["Sam","Ty"]}
+  ],
+  jobs:[
+    {id:"J-201",cust:"C5",name:"Whitfield fence stain",type:"exterior",stage:"lead",value:0,address:"41 Pine Trace"},
+    {id:"J-205",cust:"C1",name:"Bell kitchen & trim",type:"interior",stage:"estimate",value:0,address:"12 Oak Ln"},
+    {id:"J-104",cust:"C5",name:"Rutledge deck & trim",type:"exterior",stage:"quoted",value:4200,address:"41 Pine Trace"},
+    {id:"J-102",cust:"C3",name:"Maple St interior",type:"interior",stage:"scheduled",value:5600,crew:"A",date:"today",address:"88 Maple St"},
+    {id:"J-101",cust:"C1",name:"Henderson exterior repaint",type:"exterior",stage:"in_progress",value:9800,crew:"A",address:"12 Oak Ln"},
+    {id:"J-103",cust:"C2",name:"Cedar office suite",type:"interior",stage:"in_progress",value:7400,crew:"B",address:"300 Cedar Blvd"},
+    {id:"J-098",cust:"C4",name:"Coastal lobby repaint",type:"interior",stage:"invoiced",value:6400,daysLate:22,address:"5 Marina Dr"},
+    {id:"J-090",cust:"C1",name:"Adams porch & rails",type:"exterior",stage:"paid",value:3100,address:"12 Oak Ln"}
+  ],
+  crewOut:[{name:"Miguel",reason:"PTO"}],
+  materials:[
+    {job:"J-101",item:"Exterior primer (5gal)",onHand:0,need:3,vendor:"Sherwin-Williams",cost:45,status:"need"},
+    {job:"J-101",item:"Exterior paint — Accessible Beige",onHand:6,need:6,vendor:"Sherwin-Williams",cost:52,status:"stock"},
+    {job:"J-103",item:"Interior paint — Alabaster (5gal)",onHand:4,need:4,vendor:"PPG",cost:48,status:"stock"},
+    {job:"J-102",item:"Interior paint — Repose Gray",onHand:0,need:5,vendor:"PPG",cost:48,status:"need"},
+    {job:"J-104",item:"Deck stain — Cedar",onHand:2,need:4,vendor:"Sherwin-Williams",cost:40,status:"need"}
+  ]
+};
+const custName = id => (DB.customers.find(c=>c.id===id)||{}).name || "—";
+const crewName = id => (DB.crews.find(c=>c.id===id)||{}).name || "Unassigned";
+let seq = 300;
+
+/* ---------- header bits ---------- */
+(function(){
+  const d=new Date(OPS.date+"T12:00:00");
+  el("date").textContent=d.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  el("updated").textContent="· Updated "+new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+})();
+el("theme").onclick=()=>{const r=document.documentElement;const cur=r.getAttribute("data-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");r.setAttribute("data-theme",cur==="dark"?"light":"dark");};
+
+/* ---------- skin switcher (cosmetic) ---------- */
+const savedSkin=localStorage.getItem("rp_skin")||"default";
+if(savedSkin!=="default")document.documentElement.setAttribute("data-skin",savedSkin);
+el("skin").value=savedSkin;
+el("skin").onchange=()=>{const v=el("skin").value;if(v==="default")document.documentElement.removeAttribute("data-skin");else document.documentElement.setAttribute("data-skin",v);localStorage.setItem("rp_skin",v);};
+
+/* ---------- settings: exterior-work rain-risk threshold (Josh's call) ---------- */
+const SETTINGS=Object.assign({rainThreshold:40},JSON.parse(localStorage.getItem("rp_settings")||"{}"));
+const extOk=pop=>(pop||0)<SETTINGS.rainThreshold;
+el("gear").onclick=()=>el("setpanel").classList.toggle("open");
+(function(){const rn=el("rain");rn.value=SETTINGS.rainThreshold;el("rainval").textContent=SETTINGS.rainThreshold+"%";rn.oninput=()=>{SETTINGS.rainThreshold=+rn.value;el("rainval").textContent=rn.value+"%";localStorage.setItem("rp_settings",JSON.stringify(SETTINGS));render();};})();
+el("setsave").onclick=()=>el("setpanel").classList.remove("open");
+
+const CAPS=[
+  {t:"Daily briefing + audio",d:"A weather-aware morning rundown you can read or listen to."},
+  {t:"Live weather + GO/HOLD",d:"Real forecast decides exterior work, on your own risk threshold (gear icon)."},
+  {t:"Estimate-to-cash pipeline",d:"Lead to quote to e-sign + deposit to schedule to invoice to paid."},
+  {t:"Create on the fly",d:"New customers, opportunities, and quotes in a couple taps."},
+  {t:"Dispatch optimizer",d:"Suggests day + crew from weather, crew, materials, and location."},
+  {t:"Crew & time-off",d:"Assign crews and see who is out before you schedule."},
+  {t:"Materials & POs",d:"On-hand vs order, purchase orders to vendors, cost to QuickBooks."},
+  {t:"Money at a glance",d:"Receivables, overdue accounts, and what is expected today."},
+  {t:"Tap-to-talk feedback",d:"Hit the button, say what is wrong, it files straight to us."}
+];
+
+/* ---------- router ---------- */
+let VIEW="overview";
+el("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(!b)return;VIEW=b.dataset.view;[...el("tabs").children].forEach(x=>x.classList.toggle("on",x===b));render();});
+function render(){ ({overview:vOverview,pipeline:vPipeline,schedule:vSchedule,materials:vMaterials,customers:vCustomers}[VIEW]||vOverview)(); }
+
+/* ---------- OVERVIEW ---------- */
+function vOverview(){
+  const w=OPS.weather.today, ok=extOk(w.precipChance);
+  const active=DB.jobs.filter(j=>["scheduled","in_progress"].includes(j.stage));
+  const ar=DB.jobs.filter(j=>j.stage==="invoiced");
+  const arTotal=ar.reduce((a,b)=>a+b.value,0);
+  const overdue=ar.filter(j=>j.daysLate>0);
+  const today=DB.jobs.filter(j=>j.date==="today");
+  const outN=DB.crewOut.length;
+  let h="";
+  h+=`<div class="weather"><div class="big tnum">${w.highF}°<span class="sum">${esc(w.summary)}</span></div>
+    <div class="meta"><span class="meta">Precip ${w.precipChance}%</span><span class="meta">Wind ${esc(w.windMph)}</span><span class="meta">Risk limit ${SETTINGS.rainThreshold}% ⚙</span></div>
+    <span class="spacer"></span><span class="pill ${ok?"ok":"no"}"><span class="led"></span>${ok?"Exterior work: GO":"Exterior work: HOLD"}</span></div>`;
+
+  h+=`<details class="caps" open><summary>What your Command Center can do</summary><div class="capgrid">`+CAPS.map(c=>`<div class="cap"><b>${esc(c.t)}</b><span>${esc(c.d)}</span></div>`).join("")+`</div></details>`;
+
+  h+=`<div class="quickbar">
+    <button class="qbtn" data-new="customer"><span class="i">＋</span> New Customer</button>
+    <button class="qbtn" data-new="opportunity"><span class="i">＋</span> New Opportunity</button>
+    <button class="qbtn" data-new="quote"><span class="i">＋</span> Build Quote</button>
+    <button class="qbtn" data-goto="schedule"><span class="i">📅</span> Schedule &amp; Dispatch</button>
+    <button class="qbtn" data-goto="materials"><span class="i">📦</span> Materials to Order</button></div>`;
+
+  const kpis=[
+    {label:"Receivables",val:usd(arTotal),sub:`${ar.length} open invoice${ar.length===1?"":"s"}`,cls:""},
+    {label:"Overdue",val:usd(overdue.reduce((a,b)=>a+b.value,0)),sub:`${overdue.length} past due`,cls:overdue.length?"crit":"good"},
+    {label:"Active jobs",val:active.length,sub:`${today.length} scheduled today`,cls:""},
+    {label:"Crew available",val:DB.crews.reduce((a,c)=>a+c.members.length,0)-outN,sub:outN?`${outN} out today`:"Full crew in",cls:outN?"warn":"good"}
+  ];
+  h+=`<div class="kpis">`+kpis.map(k=>`<div class="kpi ${k.cls}"><span class="stripe"></span><div class="label">${k.label}</div><div class="val tnum">${k.val}</div><div class="sub">${esc(k.sub)}</div></div>`).join("")+`</div>`;
+
+  h+=`<div class="grid">`;
+  h+=`<div class="card col-8"><h3 class="ttl">Today's Schedule<span class="count">${today.length}</span></h3>`+
+    (today.length?today.map(j=>`<div class="row"><div><div class="name">${esc(j.name)}</div><div class="meta">${esc(j.address)}</div></div><div class="right"><span class="tag int">${crewName(j.crew)}</span> <button class="btn sm" data-job="${j.id}">Open</button></div></div>`).join(""):`<div class="row"><div class="meta">Nothing scheduled today.</div></div>`)+`</div>`;
+  h+=`<div class="card col-4"><h3 class="ttl">Crew</h3>`+DB.crewOut.map(p=>`<div class="row"><div class="name">${esc(p.name)}</div><div class="right"><span class="tag ext">${esc(p.reason)}</span></div></div>`).join("")+`<div class="row"><div class="meta">All other crew available.</div></div></div>`;
+  h+=`<div class="card col-8"><h3 class="ttl">Money</h3>`+ar.map(j=>`<div class="row"><div><div class="name">${esc(custName(j.cust))}</div><div class="${j.daysLate?"late":"meta"}">${j.daysLate?j.daysLate+" days late":"Invoiced"}</div></div><div class="right money tnum" ${j.daysLate?'style="color:var(--crit)"':''}>${usd(j.value)}</div></div>`).join("")+`</div>`;
+  h+=`<div class="card col-4"><h3 class="ttl">3-Day Outlook</h3>`+OPS.weather.next3.map(dd=>`<div class="row"><div><div class="name">${esc(dd.date)}</div><div class="meta">${esc(dd.summary)} · ${dd.precipChance}%</div></div><div class="right"><span class="tag ${extOk(dd.precipChance)?"good":"crit"}">${extOk(dd.precipChance)?"Ext OK":"No ext"}</span></div></div>`).join("")+`</div>`;
+  h+=`</div>`;
+  el("view").innerHTML=h;
+}
+
+/* ---------- PIPELINE ---------- */
+function vPipeline(){
+  let h=`<div class="board">`;
+  STAGES.forEach(st=>{
+    const items=DB.jobs.filter(j=>j.stage===st);
+    h+=`<div class="lane"><h4>${STAGE_LABEL[st]}<span class="n">${items.length}</span></h4>`;
+    h+=items.map(j=>`<div class="jobcard" data-job="${j.id}"><div class="jn">${esc(j.name)}</div><div class="jm">${esc(custName(j.cust))}</div><div class="jf"><span class="tag ${j.type==="exterior"?"ext":"int"}">${j.type}</span>${j.daysLate?'<span class="tag crit">'+j.daysLate+'d late</span>':''}<span class="val tnum">${j.value?usd(j.value):"—"}</span></div></div>`).join("");
+    h+=`</div>`;
+  });
+  h+=`</div>`;
+  el("view").innerHTML=h;
+}
+
+/* ---------- SCHEDULE & DISPATCH ---------- */
+function weekModel(){
+  const base=new Date(OPS.date+"T12:00:00");
+  const wx=[{ok:extOk(OPS.weather.today.precipChance),t:OPS.weather.today.precipChance+"%"}].concat(OPS.weather.next3.map(d=>({ok:extOk(d.precipChance),t:d.precipChance+"%"})));
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()+i);const w=wx[i]||{ok:true,t:"—"};days.push({label:d.toLocaleDateString("en-US",{weekday:"short",day:"numeric"}),key:i===0?"today":d.toISOString().slice(0,10),ok:w.ok,t:w.t});}
+  return days;
+}
+function vSchedule(){
+  const days=weekModel();
+  // suggestions: unscheduled jobs (quoted/estimate) that are ready
+  const unsched=DB.jobs.filter(j=>["quoted","scheduled"].includes(j.stage)===false && ["estimate","quoted"].includes(j.stage));
+  const pend=DB.jobs.filter(j=>["estimate","quoted"].includes(j.stage));
+  let h="";
+  if(pend.length){
+    h+=`<div class="card" style="margin-bottom:14px"><h3 class="ttl">Optimizer suggestions <span class="count">weather · crew · materials · location</span></h3>`;
+    pend.forEach(j=>{
+      const dayIdx=j.type==="exterior"?days.findIndex(d=>d.ok):0;
+      const day=days[dayIdx>=0?dayIdx:0];
+      const mats=DB.materials.filter(m=>m.job===j.id);
+      const short=mats.filter(m=>m.onHand<m.need);
+      const blocked=short.length>0;
+      h+=`<div class="suggest"><div class="sx"><b>${esc(j.name)}</b> (${j.type}) → suggest <b>${esc(day.label)}</b>, <b>Crew ${j.type==="exterior"?"A":"B"}</b>. ${j.type==="exterior"?"First dry day":"Weather-agnostic"}; ${blocked?'<span style="color:var(--crit)">materials short — order first</span>':'materials on hand'}.</div><span class="spacer" style="flex:1"></span>${blocked?`<button class="btn sm warn" data-goto="materials">Order materials</button>`:`<button class="btn sm pri" data-schedule="${j.id}" data-day="${esc(day.label)}">Apply</button>`}</div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`<div class="card"><h3 class="ttl">This Week</h3><div class="week">`;
+  days.forEach(d=>{
+    const jobs=DB.jobs.filter(j=>j.date===d.key || (d.key==="today"&&j.date==="today"));
+    h+=`<div class="wday"><div class="wh"><span class="wd">${esc(d.label)}</span><span class="wxdot ${d.ok?"ok":"no"}" title="${d.ok?"Exterior OK":"No exterior"}"></span></div><div class="wt">Rain ${esc(d.t)} · ${d.ok?"ext OK":"no ext"}</div>`;
+    h+=jobs.map(j=>`<div class="schitem" data-job="${j.id}">${esc(j.name)}<div class="sm">${crewName(j.crew)} · ${j.type}</div></div>`).join("");
+    h+=`</div>`;
+  });
+  h+=`</div></div>`;
+  el("view").innerHTML=h;
+}
+
+/* ---------- MATERIALS (PO flow: need → draft PO → on order → received) ---------- */
+function vMaterials(){
+  const qty=m=>Math.max(0,m.need-m.onHand);
+  const jobName=id=>(DB.jobs.find(j=>j.id===id)||{}).name||id;
+  const need=DB.materials.filter(m=>m.status==="need");
+  const draft=DB.materials.filter(m=>m.status==="draft");
+  const ordered=DB.materials.filter(m=>m.status==="ordered");
+  const vendors=[...new Set(draft.map(m=>m.vendor))];
+  let h=`<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi ${need.length?"warn":"good"}"><span class="stripe"></span><div class="label">Need to order</div><div class="val tnum">${need.length}</div><div class="sub">not yet on a PO</div></div>
+    <div class="kpi ${draft.length?"warn":""}"><span class="stripe"></span><div class="label">In draft PO</div><div class="val tnum">${draft.length}</div><div class="sub">${vendors.length} vendor(s)</div></div>
+    <div class="kpi"><span class="stripe"></span><div class="label">On order</div><div class="val tnum">${ordered.length}</div><div class="sub">awaiting delivery</div></div>
+    <div class="kpi"><span class="stripe"></span><div class="label">Jobs waiting</div><div class="val tnum">${new Set(DB.materials.filter(m=>m.onHand<m.need&&m.status!=="ordered").map(m=>m.job)).size}</div><div class="sub">blocked on materials</div></div></div>`;
+  if(vendors.length){
+    h+=`<div class="card" style="margin-bottom:14px"><h3 class="ttl">Draft purchase orders <span class="count">grouped by vendor</span></h3>`;
+    vendors.forEach(v=>{
+      const items=draft.filter(m=>m.vendor===v);
+      const units=items.reduce((a,m)=>a+qty(m),0);
+      const total=items.reduce((a,m)=>a+qty(m)*m.cost,0);
+      h+=`<div class="suggest"><div class="sx"><b>${esc(v)}</b> — ${items.length} item(s), ${units} units · <b>${usd(total)}</b><div class="meta">${items.map(m=>esc(m.item)+" ×"+qty(m)).join(" · ")}</div></div><span class="spacer" style="flex:1"></span><button class="btn sm pri" data-sendpo="${esc(v)}">Send PO to ${esc(v)} rep</button></div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`<div class="card"><h3 class="ttl">Materials — on hand vs need to order</h3><div class="tbl-wrap"><table><thead><tr><th>Material</th><th>Job</th><th>Vendor</th><th>On hand</th><th>Needed</th><th>Unit</th><th>Status</th><th></th></tr></thead><tbody>`;
+  DB.materials.forEach((m,i)=>{
+    let s="",a="";
+    if(m.status==="stock"){s='<span class="tag good">In stock</span>';}
+    else if(m.status==="need"){s=`<span class="tag crit">Order ${qty(m)}</span>`;a=`<button class="btn sm pri" data-addpo="${i}">Add to PO</button>`;}
+    else if(m.status==="draft"){s='<span class="tag info">In draft PO</span>';a=`<button class="btn sm" data-rmpo="${i}">Remove</button>`;}
+    else if(m.status==="ordered"){s=`<span class="tag info">On order · ETA ${esc(m.eta||"~2 days")}</span>`;a=`<button class="btn sm" data-receive="${i}">Mark received</button>`;}
+    h+=`<tr><td>${esc(m.item)}</td><td>${esc(jobName(m.job))}</td><td>${esc(m.vendor)}</td><td class="tnum">${m.onHand}</td><td class="tnum">${m.need}</td><td class="tnum">${usd(m.cost)}</td><td>${s}</td><td>${a}</td></tr>`;
+  });
+  h+=`</tbody></table></div></div>`;
+  el("view").innerHTML=h;
+}
+
+/* ---------- CUSTOMERS ---------- */
+function vCustomers(){
+  let h=`<div class="card"><h3 class="ttl">Customers<span class="count">${DB.customers.length}</span></h3><div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Jobs</th><th></th></tr></thead><tbody>`;
+  DB.customers.forEach(c=>{const jc=DB.jobs.filter(j=>j.cust===c.id).length;h+=`<tr><td class="name">${esc(c.name)}</td><td class="tnum">${esc(c.phone)}</td><td>${esc(c.address)}</td><td class="tnum">${jc}</td><td><button class="btn sm" data-newoppfor="${c.id}">New opportunity</button></td></tr>`;});
+  h+=`</tbody></table></div></div>`;
+  el("view").innerHTML=h;
+}
+
+/* ---------- JOB DRAWER ---------- */
+function openJob(id){
+  const j=DB.jobs.find(x=>x.id===id);if(!j)return;
+  const idx=STAGES.indexOf(j.stage);
+  const mats=DB.materials.filter(m=>m.job===j.id);
+  const short=mats.filter(m=>m.onHand<m.need);
+  let acts="";
+  const A=(label,attr,cls="pri")=>`<button class="btn ${cls}" ${attr}>${label}</button>`;
+  if(j.stage==="lead") acts=A("Convert to Estimate",`data-adv="${j.id}"`);
+  else if(j.stage==="estimate") acts=A("Build Quote",`data-quote="${j.id}"`);
+  else if(j.stage==="quoted") acts=A("Send for Signature + Deposit",`data-send="${j.id}"`)+A("Mark signed &amp; deposit paid",`data-adv="${j.id}"`,"");
+  else if(j.stage==="scheduled") acts=(j.date?"":A("Set date &amp; crew",`data-schedule2="${j.id}"`))+A("Assign / Change Crew",`data-assign="${j.id}"`,"")+A("Start job",`data-adv="${j.id}"`);
+  else if(j.stage==="in_progress") acts=A("Mark Complete → Invoice",`data-adv="${j.id}"`);
+  else if(j.stage==="invoiced") acts=A("Send payment reminder",`data-remind="${j.id}"`,"")+A("Mark Paid",`data-adv="${j.id}"`);
+  else acts=`<div class="meta">Job closed and paid. 🎉</div>`;
+
+  let h=`<h2>${esc(j.name)}</h2><div class="sub">${esc(custName(j.cust))} · ${esc(j.address)}</div>`;
+  h+=`<div class="stageflow">`+STAGES.map((s,i)=>`<span class="${i<idx?"done":i===idx?"cur":""}">${STAGE_LABEL[s]}</span>`).join("")+`</div>`;
+  h+=`<div class="kv"><span class="k">Type</span><span class="v"><span class="tag ${j.type==="exterior"?"ext":"int"}">${j.type}</span></span></div>`;
+  h+=`<div class="kv"><span class="k">Value</span><span class="v tnum">${j.value?usd(j.value):"Not quoted"}</span></div>`;
+  h+=`<div class="kv"><span class="k">Crew</span><span class="v">${crewName(j.crew)}</span></div>`;
+  h+=`<div class="kv"><span class="k">Scheduled</span><span class="v">${j.date?esc(j.date):"To be scheduled"}</span></div>`;
+  if(mats.length) h+=`<div class="kv"><span class="k">Materials</span><span class="v">${short.length?`<span class="tag crit">${short.length} to order</span>`:`<span class="tag good">On hand</span>`}</span></div>`;
+  h+=`<div class="actions">${acts}</div>`;
+  h+=`<div class="actions" style="margin-top:8px"><button class="btn" id="drawerClose">Close</button></div>`;
+  el("drawer").innerHTML=h;
+  el("drawer").classList.add("open");el("scrim").classList.add("open");
+}
+function closeOverlays(){el("drawer").classList.remove("open");el("modal").classList.remove("open");el("scrim").classList.remove("open");}
+
+/* ---------- MODALS ---------- */
+function modal(title,body,onSubmit,submitLabel="Save"){
+  el("modal").innerHTML=`<h2>${esc(title)}</h2><form id="mform">${body}<div class="foot"><button type="button" class="btn" id="mcancel">Cancel</button><button type="submit" class="btn pri">${esc(submitLabel)}</button></div></form>`;
+  el("modal").classList.add("open");el("scrim").classList.add("open");
+  el("mcancel").onclick=closeOverlays;
+  el("mform").onsubmit=(e)=>{e.preventDefault();const data={};new FormData(e.target).forEach((v,k)=>data[k]=v);onSubmit(data);};
+}
+function fld(label,name,opts={}){const t=opts.type||"text";if(t==="select")return `<div class="field"><label>${label}</label><select name="${name}">${opts.options.map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join("")}</select></div>`;return `<div class="field"><label>${label}</label><input name="${name}" type="${t}" placeholder="${esc(opts.ph||"")}" ${opts.required?"required":""} value="${esc(opts.value||"")}"></div>`;}
+
+function newCustomer(prefillFor){
+  modal("New Customer",fld("Name","name",{required:true,ph:"Full name"})+`<div class="field two">`+fld("Phone","phone",{ph:"843-…"})+fld("Email","email",{type:"email",ph:"name@…"})+`</div>`+fld("Address","address",{ph:"Street, city"}),
+  d=>{const id="C"+(++seq);DB.customers.push({id,...d});closeOverlays();toast("Customer created: "+d.name);if(prefillFor==="opp")newOpportunity(id);else{VIEW="customers";syncTabs();render();}},"Create customer");
+}
+function newOpportunity(prefCust){
+  const opts=DB.customers.map(c=>({v:c.id,l:c.name}));
+  modal("New Opportunity",fld("Customer","cust",{type:"select",options:opts})+fld("Job name","name",{required:true,ph:"e.g. Exterior repaint"})+`<div class="field two">`+fld("Type","type",{type:"select",options:[{v:"interior",l:"Interior"},{v:"exterior",l:"Exterior"}]})+fld("Address","address",{ph:"Job site"})+`</div>`,
+  d=>{const id="J-"+(++seq);DB.jobs.unshift({id,cust:d.cust,name:d.name,type:d.type,address:d.address,stage:"lead",value:0});closeOverlays();toast("Opportunity added to Pipeline: "+d.name);VIEW="pipeline";syncTabs();render();},"Create opportunity");
+  if(prefCust) setTimeout(()=>{const s=el("modal").querySelector('select[name=cust]');if(s)s.value=prefCust;},0);
+}
+function buildQuote(jobId){
+  let job=DB.jobs.find(j=>j.id===jobId);
+  const jobOpts=DB.jobs.filter(j=>["lead","estimate","quoted"].includes(j.stage)).map(j=>({v:j.id,l:j.name+" · "+custName(j.cust)}));
+  const items=[{d:"Surface prep & masking",q:1,p:850},{d:"Primer & paint (2 coats)",q:1,p:2600},{d:"Materials",q:1,p:750}];
+  const li=()=>items.map((it,i)=>`<div class="li"><input value="${esc(it.d)}" data-q="${i}" data-f="d"><input class="tnum" value="${it.q}" data-q="${i}" data-f="q"><input class="tnum" value="${it.p}" data-q="${i}" data-f="p"><button type="button" class="btn sm" data-del="${i}">✕</button></div>`).join("");
+  const total=()=>items.reduce((a,b)=>a+(+b.q*+b.p||0),0);
+  const body=fld("Job","job",{type:"select",options:jobOpts})+`<label style="font-size:12px;font-weight:700;color:var(--ink-2)">Line items</label><div class="lineitems" id="li">${li()}</div><button type="button" class="btn sm" id="addli">+ Add line</button><div class="total"><span>Total</span><span class="tnum" id="qtot">${usd(total())}</span></div>`;
+  modal("Build Quote",body,d=>{const jb=DB.jobs.find(j=>j.id===d.job);if(jb){jb.value=total();jb.stage=jb.stage==="lead"?"quoted":(jb.stage==="estimate"?"quoted":"quoted");}closeOverlays();toast("Quote built: "+usd(total())+" — ready to send");VIEW="pipeline";syncTabs();render();},"Save quote");
+  if(jobId) setTimeout(()=>{const s=el("modal").querySelector('select[name=job]');if(s)s.value=jobId;},0);
+  const refresh=()=>{el("li").innerHTML=li();el("qtot").textContent=usd(total());bind();};
+  const bind=()=>{el("modal").querySelectorAll("[data-f]").forEach(inp=>inp.oninput=()=>{const i=+inp.dataset.q,f=inp.dataset.f;items[i][f]=f==="d"?inp.value:+inp.value;el("qtot").textContent=usd(total());});el("modal").querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{items.splice(+b.dataset.del,1);refresh();});};
+  el("addli").onclick=()=>{items.push({d:"New line",q:1,p:0});refresh();};bind();
+}
+function scheduleJob(jobId){
+  const jobOpts=DB.jobs.filter(j=>["quoted","scheduled"].includes(j.stage)).map(j=>({v:j.id,l:j.name}));
+  const days=weekModel();
+  modal("Schedule Job",fld("Job","job",{type:"select",options:jobOpts})+`<div class="field two">`+fld("Day","day",{type:"select",options:days.map(d=>({v:d.label,l:d.label+(d.ok?"":" (rain)")}))})+fld("Crew","crew",{type:"select",options:DB.crews.map(c=>({v:c.id,l:c.name}))})+`</div>`,
+  d=>{const jb=DB.jobs.find(j=>j.id===d.job);if(jb){jb.stage="scheduled";jb.date=d.day;jb.crew=d.crew;}closeOverlays();toast("Scheduled "+(jb?jb.name:"")+" · "+d.day+" · "+crewName(d.crew));VIEW="schedule";syncTabs();render();},"Schedule");
+  if(jobId)setTimeout(()=>{const s=el("modal").querySelector('select[name=job]');if(s)s.value=jobId;},0);
+}
+function assignCrew(jobId){
+  const j=DB.jobs.find(x=>x.id===jobId);
+  modal("Assign Crew",fld("Crew","crew",{type:"select",options:DB.crews.map(c=>({v:c.id,l:c.name+" — "+c.members.join(", ")}))}),
+  d=>{j.crew=d.crew;closeOverlays();toast("Assigned "+crewName(d.crew)+" to "+j.name);openJob(j.id);},"Assign");
+  if(j&&j.crew)setTimeout(()=>{const s=el("modal").querySelector('select[name=crew]');if(s)s.value=j.crew;},0);
+}
+function advance(id){
+  const j=DB.jobs.find(x=>x.id===id);const i=STAGES.indexOf(j.stage);
+  if(i<STAGES.length-1){j.stage=STAGES[i+1];if(j.stage==="paid")j.daysLate=0;toast(j.name+" → "+STAGE_LABEL[j.stage]);}
+  if(el("drawer").classList.contains("open"))openJob(id);render();
+}
+
+function syncTabs(){[...el("tabs").children].forEach(x=>x.classList.toggle("on",x.dataset.view===VIEW));}
+
+/* ---------- global click handling ---------- */
+document.addEventListener("click",e=>{
+  const t=e.target;
+  const nb=t.closest("[data-new]"); if(nb){const k=nb.dataset.new;closeMenu();if(k==="customer")newCustomer();else if(k==="opportunity")newOpportunity();else if(k==="quote")buildQuote();else if(k==="schedule")scheduleJob();return;}
+  const go=t.closest("[data-goto]"); if(go){VIEW=go.dataset.goto;syncTabs();render();return;}
+  const jc=t.closest("[data-job]"); if(jc){openJob(jc.dataset.job);return;}
+  if(t.closest("[data-adv]")){advance(t.closest("[data-adv]").dataset.adv);return;}
+  if(t.closest("[data-quote]")){buildQuote(t.closest("[data-quote]").dataset.quote);return;}
+  if(t.closest("[data-send]")){const id=t.closest("[data-send]").dataset.send;const j=DB.jobs.find(x=>x.id===id);toast("Sent to "+custName(j.cust)+" for e-signature + deposit");closeOverlays();return;}
+  if(t.closest("[data-assign]")){assignCrew(t.closest("[data-assign]").dataset.assign);return;}
+  if(t.closest("[data-schedule2]")){scheduleJob(t.closest("[data-schedule2]").dataset.schedule2);return;}
+  if(t.closest("[data-remind]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-remind]").dataset.remind);toast("Payment reminder sent to "+custName(j.cust));return;}
+  if(t.closest("[data-schedule]")){const b=t.closest("[data-schedule]");const j=DB.jobs.find(x=>x.id===b.dataset.schedule);j.stage="scheduled";j.date=b.dataset.day;j.crew=j.type==="exterior"?"A":"B";toast("Scheduled "+j.name+" · "+b.dataset.day);render();return;}
+  if(t.closest("[data-addpo]")){DB.materials[+t.closest("[data-addpo]").dataset.addpo].status="draft";toast("Added to draft PO");render();return;}
+  if(t.closest("[data-rmpo]")){DB.materials[+t.closest("[data-rmpo]").dataset.rmpo].status="need";render();return;}
+  if(t.closest("[data-sendpo]")){const v=t.closest("[data-sendpo]").dataset.sendpo;const items=DB.materials.filter(m=>m.vendor===v&&m.status==="draft");const total=items.reduce((a,m)=>a+Math.max(0,m.need-m.onHand)*m.cost,0);items.forEach(m=>{m.status="ordered";m.eta="Thu";});toast("PO sent to "+v+" rep — "+items.length+" item(s), "+usd(total)+" · recorded in QuickBooks");render();return;}
+  if(t.closest("[data-receive]")){const m=DB.materials[+t.closest("[data-receive]").dataset.receive];m.onHand=m.need;m.status="stock";toast("Received "+m.item+" — job unblocked for scheduling");render();return;}
+  if(t.closest("[data-newoppfor]")){newOpportunity(t.closest("[data-newoppfor]").dataset.newoppfor);return;}
+  if(t.id==="drawerClose"||t.id==="scrim")closeOverlays();
+});
+
+/* new menu */
+function closeMenu(){el("newmenu").classList.remove("open");}
+el("newbtn").onclick=(e)=>{e.stopPropagation();el("newmenu").classList.toggle("open");};
+document.addEventListener("click",e=>{if(!e.target.closest(".newmenu"))closeMenu();});
+
+/* ---------- feedback ---------- */
+const FEEDBACK_URL=CFG.feedbackApi||window.__FEEDBACK_URL__||null;
+el("fab").onclick=()=>{const o=el("panel").classList.toggle("open");if(o)el("fbtext").focus();};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,recOn=false;const mic=el("mic");
+if(SR){rec=new SR();rec.continuous=true;rec.interimResults=false;rec.lang="en-US";
+  rec.onresult=(e)=>{let s="";for(let i=e.resultIndex;i<e.results.length;i++)s+=e.results[i][0].transcript;const ta=el("fbtext");ta.value=(ta.value?ta.value+" ":"")+s.trim();};
+  rec.onend=()=>{recOn=false;mic.classList.remove("on");mic.textContent="● Record";};
+  mic.onclick=()=>{if(recOn)rec.stop();else{rec.start();recOn=true;mic.classList.add("on");mic.textContent="■ Stop";}};
+}else mic.style.display="none";
+el("send").onclick=async()=>{const text=el("fbtext").value.trim();if(!text){toast("Add a note first");return;}const payload={note:text,ts:new Date().toISOString(),page:"command-center",view:VIEW};
+  if(FEEDBACK_URL){try{await fetch(FEEDBACK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});toast("Sent to your feedback thread");}catch(_){localStorage.setItem("rp_fb_"+Date.now(),JSON.stringify(payload));toast("Offline — saved locally");}}
+  else{localStorage.setItem("rp_fb_"+Date.now(),JSON.stringify(payload));toast("Saved (demo — feedback endpoint not wired yet)");}
+  el("fbtext").value="";el("panel").classList.remove("open");};
+
+/* ---- bootstrap: pull live ops-state from n8n if configured, else demo ---- */
+async function bootstrap(){
+  if(OPS_API){
+    try{
+      const r=await fetch(OPS_API,{headers:{Accept:"application/json"}});
+      if(r.ok){ const live=await r.json(); const s=live.opsState||live;
+        if(s&&s.weather){ OPS.weather=s.weather; if(s.date)OPS.date=s.date;
+          const chip=document.querySelector(".chip.demo"); if(chip){chip.textContent="Live weather";chip.classList.remove("demo");}
+          el("updated").textContent="· Live · "+new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}); } }
+    }catch(_){ /* stays on demo data */ }
+  }
+  render();
+}
+bootstrap();
+</script>
