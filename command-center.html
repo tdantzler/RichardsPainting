@@ -182,6 +182,41 @@
   .btn.sm{padding:6px 10px;font-size:12px}
   .btn.warn{color:var(--warn)} .btn.crit{color:var(--crit)}
 
+  /* calendar + dispatch */
+  .cal{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .calhead{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface-2)}
+  .calhead>div{padding:7px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:center}
+  .calrow{display:grid;grid-template-columns:repeat(7,1fr)}
+  .calcell{min-height:96px;border-top:1px solid var(--border);border-left:1px solid var(--border);padding:6px;display:flex;flex-direction:column;gap:4px}
+  .calcell:nth-child(7n+1){border-left:0}
+  .calcell.past{background:var(--surface-2);opacity:.45}
+  .calcell.sun{background:var(--surface-2)}
+  .calc-top{display:flex;align-items:center;justify-content:space-between}
+  .calc-d{font-weight:700;font-size:13px}
+  .wdot{width:9px;height:9px;border-radius:50%}
+  .wdot.ok{background:var(--good)}.wdot.no{background:var(--crit)}
+  .calc-wx{font-size:10.5px;color:var(--muted);font-weight:600;display:flex;gap:5px;align-items:center}
+  .conf{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:5px;text-transform:uppercase;letter-spacing:.03em}
+  .conf.high{color:var(--good);background:var(--good-soft)}.conf.med{color:var(--warn);background:var(--warn-soft)}.conf.low{color:var(--crit);background:var(--crit-soft)}.conf.none{color:var(--muted);background:var(--surface-2)}
+  .chip-job{font-size:11px;font-weight:700;padding:4px 6px;border-radius:7px;cursor:grab;border-left:4px solid;display:flex;align-items:center;gap:5px}
+  .chip-job.int{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent)}
+  .chip-job.ext{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+  .chip-job.rain{outline:1.5px solid var(--crit)}
+  .chip-job .dn{margin-left:auto;font-weight:600;opacity:.65;font-size:10px}
+  .schsec{margin-top:14px}
+  .schlabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .wwin{display:flex;gap:6px;flex-wrap:wrap}
+  .wcell{background:var(--surface-2);border-radius:8px;padding:6px 8px;text-align:center;min-width:52px}
+  .wcell b{display:block;font-size:11px}.wcell span{font-size:10px;color:var(--muted);display:block}
+  .wcell.no{outline:1.5px solid var(--crit)}
+  .people{display:flex;flex-wrap:wrap;gap:8px}
+  .pchk{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;background:var(--surface-2);padding:5px 9px;border-radius:8px}
+  .pcrew{font-size:10px;color:var(--muted);text-transform:uppercase}
+  .stagerow{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--border);font-size:13.5px;font-weight:600}
+  .stagerow .right{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px}
+  .stagerow .muted{color:var(--muted);text-decoration:line-through}
+  @media (max-width:820px){.calcell{min-height:74px}.chip-job{font-size:10px}}
+
   /* drawer + modal */
   .scrim{position:fixed;inset:0;background:rgba(6,14,20,.5);z-index:50;display:none}
   .scrim.open{display:block}
@@ -338,6 +373,17 @@ const custName = id => (DB.customers.find(c=>c.id===id)||{}).name || "—";
 const crewName = id => (DB.crews.find(c=>c.id===id)||{}).name || "Unassigned";
 let seq = 300;
 
+/* ---------- job-stage templates + scheduling defaults ---------- */
+const STAGE_TEMPLATES = {
+  interior:[{name:"Move & cover furniture",ws:false},{name:"Surface prep (patch, sand)",ws:false},{name:"Mud & let dry",ws:false},{name:"Prime",ws:false},{name:"Finish coats",ws:false},{name:"Trim & doors",ws:false},{name:"Cleanup & walkthrough",ws:false}],
+  exterior:[{name:"Pressure wash",ws:true},{name:"Scrape & surface prep",ws:true},{name:"Repairs & caulk",ws:true},{name:"Prime bare spots",ws:true},{name:"Finish coats",ws:true},{name:"Trim & shutters",ws:true},{name:"Cleanup & walkthrough",ws:false}],
+  deck:[{name:"Clean / strip",ws:true},{name:"Sand",ws:true},{name:"Let dry",ws:true},{name:"Stain",ws:true},{name:"Seal",ws:true}]
+};
+const DUR = {interior:4, exterior:6, deck:3};
+function jobStages(type){ return (STAGE_TEMPLATES[type]||STAGE_TEMPLATES.interior).map(s=>({name:s.name,ws:s.ws,included:true,done:false})); }
+const SCHED_SEED = { "J-103":{startIdx:0,days:5,crew:"A"}, "J-101":{startIdx:0,days:6,crew:"B"}, "J-102":{startIdx:5,days:4,crew:"A"} };
+DB.jobs.forEach(j=>{ j.days=DUR[j.type]||4; j.stages=jobStages(j.type); if(SCHED_SEED[j.id]){const s=SCHED_SEED[j.id];j.startIdx=s.startIdx;j.days=s.days;j.crew=s.crew;} });
+
 /* ---------- header bits ---------- */
 (function(){
   const d=new Date(OPS.date+"T12:00:00");
@@ -383,7 +429,7 @@ function vOverview(){
   const ar=DB.jobs.filter(j=>j.stage==="invoiced");
   const arTotal=ar.reduce((a,b)=>a+b.value,0);
   const overdue=ar.filter(j=>j.daysLate>0);
-  const today=DB.jobs.filter(j=>j.date==="today");
+  const today=DB.jobs.filter(j=>j.startIdx!=null&&jobDays(j).includes(0));
   const outN=DB.crewOut.length;
   let h="";
   h+=`<div class="weather"><div class="big tnum">${w.highF}°<span class="sum">${esc(w.summary)}</span></div>
@@ -431,40 +477,81 @@ function vPipeline(){
 }
 
 /* ---------- SCHEDULE & DISPATCH ---------- */
-function weekModel(){
-  const base=new Date(OPS.date+"T12:00:00");
-  const wx=[{ok:extOk(OPS.weather.today.precipChance),t:OPS.weather.today.precipChance+"%"}].concat(OPS.weather.next3.map(d=>({ok:extOk(d.precipChance),t:d.precipChance+"%"})));
-  const days=[];
-  for(let i=0;i<7;i++){const d=new Date(base);d.setDate(base.getDate()+i);const w=wx[i]||{ok:true,t:"—"};days.push({label:d.toLocaleDateString("en-US",{weekday:"short",day:"numeric"}),key:i===0?"today":d.toISOString().slice(0,10),ok:w.ok,t:w.t});}
-  return days;
+function calBase(){ return new Date(OPS.date+"T12:00:00"); }
+function mockPrecip(i){ const p=[15,20,55,30,10,45,25,60,20,35,15,50,25,10,40,20,30,55,15,25,45,20]; return p[((i%p.length)+p.length)%p.length]; }
+function dayInfo(idx){
+  const d=new Date(calBase()); d.setDate(d.getDate()+idx);
+  let precip;
+  if(idx===0) precip=OPS.weather.today.precipChance;
+  else if(idx>=1&&idx<=3&&OPS.weather.next3[idx-1]) precip=OPS.weather.next3[idx-1].precipChance;
+  else precip=mockPrecip(idx);
+  const conf = idx<0?"—" : idx<=3?"High" : idx<=6?"Med" : idx<=9?"Low":"None";
+  return {idx,date:d,dow:d.getDay(),precip,conf,ok:extOk(precip),
+    short:d.toLocaleDateString("en-US",{weekday:"short",day:"numeric"}),
+    long:d.toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric"})};
 }
+function isWork(idx){ return dayInfo(idx).dow!==0; }               // crews work Mon–Sat
+function ensureSched(j){ if(j.days==null)j.days=DUR[j.type]||4; if(!j.stages)j.stages=jobStages(j.type); }
+function jobDays(j){ if(j.startIdx==null)return []; const out=[]; let i=j.startIdx,g=0; while(out.length<(j.days||1)&&g<90){ if(isWork(i))out.push(i); i++; g++; } return out; }
+function jobHasWS(j){ return (j.stages||[]).some(s=>s.included&&s.ws) || j.type==="exterior"; }
+function jobRainConflicts(j){ if(!jobHasWS(j))return []; return jobDays(j).filter(i=>i>=0&&i<=9&&!dayInfo(i).ok); }
+function suggestStart(j){ const ws=jobHasWS(j),n=Math.min(j.days||1,4); for(let s=0;s<21;s++){ let i=s,cnt=0,ok=true,g=0; while(cnt<n&&g<90){ if(isWork(i)){cnt++; if(ws&&i<=9&&!dayInfo(i).ok){ok=false;break;}} i++; g++; } if(ok)return s; } return 0; }
+function effectivePeople(j){ return j.people || ((DB.crews.find(c=>c.id===j.crew)||{}).members||[]); }
+
 function vSchedule(){
-  const days=weekModel();
-  // suggestions: unscheduled jobs (quoted/estimate) that are ready
-  const unsched=DB.jobs.filter(j=>["quoted","scheduled"].includes(j.stage)===false && ["estimate","quoted"].includes(j.stage));
+  DB.jobs.forEach(ensureSched);
+  const weeks=4, startOff=-dayInfo(0).dow;
   const pend=DB.jobs.filter(j=>["estimate","quoted"].includes(j.stage));
   let h="";
   if(pend.length){
     h+=`<div class="card" style="margin-bottom:14px"><h3 class="ttl">Optimizer suggestions <span class="count">weather · crew · materials · location</span></h3>`;
     pend.forEach(j=>{
-      const dayIdx=j.type==="exterior"?days.findIndex(d=>d.ok):0;
-      const day=days[dayIdx>=0?dayIdx:0];
-      const mats=DB.materials.filter(m=>m.job===j.id);
-      const short=mats.filter(m=>m.onHand<m.need);
+      const s=suggestStart(j), day=dayInfo(s);
+      const short=DB.materials.filter(m=>m.job===j.id&&m.onHand<m.need&&m.status!=="ordered");
       const blocked=short.length>0;
-      h+=`<div class="suggest"><div class="sx"><b>${esc(j.name)}</b> (${j.type}) → suggest <b>${esc(day.label)}</b>, <b>Crew ${j.type==="exterior"?"A":"B"}</b>. ${j.type==="exterior"?"First dry day":"Weather-agnostic"}; ${blocked?'<span style="color:var(--crit)">materials short — order first</span>':'materials on hand'}.</div><span class="spacer" style="flex:1"></span>${blocked?`<button class="btn sm warn" data-goto="materials">Order materials</button>`:`<button class="btn sm pri" data-schedule="${j.id}" data-day="${esc(day.label)}">Apply</button>`}</div>`;
+      h+=`<div class="suggest"><div class="sx"><b>${esc(j.name)}</b> (${j.type}, ${j.days}d) → <b>${esc(day.long)}</b>, <b>Crew ${j.type==="exterior"?"A":"B"}</b>. ${jobHasWS(j)?"first clear window":"weather-agnostic"}; ${blocked?'<span style="color:var(--crit)">materials not ready — order first</span>':'materials ready'}.</div><span class="spacer" style="flex:1"></span>${blocked?`<button class="btn sm warn" data-goto="materials">Order materials</button>`:`<button class="btn sm pri" data-applysug="${j.id}">Apply</button>`}</div>`;
     });
     h+=`</div>`;
   }
-  h+=`<div class="card"><h3 class="ttl">This Week</h3><div class="week">`;
-  days.forEach(d=>{
-    const jobs=DB.jobs.filter(j=>j.date===d.key || (d.key==="today"&&j.date==="today"));
-    h+=`<div class="wday"><div class="wh"><span class="wd">${esc(d.label)}</span><span class="wxdot ${d.ok?"ok":"no"}" title="${d.ok?"Exterior OK":"No exterior"}"></span></div><div class="wt">Rain ${esc(d.t)} · ${d.ok?"ext OK":"no ext"}</div>`;
-    h+=jobs.map(j=>`<div class="schitem" data-job="${j.id}">${esc(j.name)}<div class="sm">${crewName(j.crew)} · ${j.type}</div></div>`).join("");
+  h+=`<div class="card"><h3 class="ttl">Schedule &amp; Dispatch <span class="count">${weeks} weeks · drag a job to reschedule</span></h3>`;
+  h+=`<div class="cal"><div class="calhead">`+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=>`<div>${d}</div>`).join("")+`</div>`;
+  for(let w=0;w<weeks;w++){
+    h+=`<div class="calrow">`;
+    for(let c=0;c<7;c++){
+      const idx=startOff+w*7+c, info=dayInfo(idx), past=idx<0;
+      const here=DB.jobs.filter(j=>jobDays(j).includes(idx));
+      h+=`<div class="calcell ${past?"past":""} ${(!past&&info.dow===0)?"sun":""}" ${past?"":`data-drop="${idx}"`}>
+        <div class="calc-top"><span class="calc-d">${info.date.getDate()}</span>${past?"":`<span class="wdot ${info.ok?"ok":"no"}"></span>`}</div>
+        ${past?"":`<div class="calc-wx">${info.precip}% <span class="conf ${info.conf.toLowerCase()}">${info.conf}</span></div>`}
+        ${here.map(j=>{const dl=jobDays(j),pos=dl.indexOf(idx)+1,rain=jobRainConflicts(j).includes(idx);return `<div class="chip-job ${j.type==="exterior"?"ext":"int"} ${rain?"rain":""}" draggable="true" data-drag="${j.id}" data-schedjob="${j.id}" title="${esc(j.name)} — ${crewName(j.crew)}">${esc(j.name.split(" ")[0])} <span class="dn">${pos}/${j.days}</span>${rain?" ☔":""}</div>`;}).join("")}
+      </div>`;
+    }
     h+=`</div>`;
-  });
-  h+=`</div></div>`;
+  }
+  h+=`</div><div class="meta" style="margin-top:8px">☂ weather-sensitive stage · ☔ rain-risk day inside a job's window · confidence drops the further out: High ≤3d, Med 4–6d, Low 7–9d, beyond that we schedule but can't promise the weather.</div></div>`;
   el("view").innerHTML=h;
+}
+
+/* ---------- SCHEDULING DRAWER (dates, length, crew, people, materials, stages) ---------- */
+function openScheduleJob(id){
+  const j=DB.jobs.find(x=>x.id===id); if(!j)return; ensureSched(j);
+  const occ=jobDays(j), conflicts=jobRainConflicts(j), eff=effectivePeople(j);
+  const allPeople=DB.crews.flatMap(c=>c.members.map(m=>({m,crew:c.id})));
+  const mats=DB.materials.filter(m=>m.job===j.id), short=mats.filter(m=>m.onHand<m.need&&m.status!=="ordered");
+  let h=`<h2>${esc(j.name)}</h2><div class="sub">${esc(custName(j.cust))} · ${esc(j.address)} · <span class="tag ${j.type==="exterior"?"ext":"int"}">${j.type}</span></div>`;
+  h+=`<div class="kv"><span class="k">Start</span><span class="v">${j.startIdx==null?"Unscheduled":esc(dayInfo(j.startIdx).long)}</span></div>`;
+  h+=`<div class="kv"><span class="k">Length</span><span class="v"><button class="btn sm" data-dur="${j.id}:-">−</button> <b>${j.days} day${j.days>1?"s":""}</b> <button class="btn sm" data-dur="${j.id}:+">+</button></span></div>`;
+  h+=`<div class="kv"><span class="k">Crew</span><span class="v"><select class="skinsel" data-crewsel="${j.id}">${DB.crews.map(c=>`<option value="${c.id}" ${c.id===j.crew?"selected":""}>${esc(c.name)}</option>`).join("")}</select></span></div>`;
+  h+=`<div class="schsec"><div class="schlabel">People on this job (override)</div><div class="people">`+allPeople.map(p=>`<label class="pchk"><input type="checkbox" data-person="${j.id}:${esc(p.m)}" ${eff.includes(p.m)?"checked":""}> ${esc(p.m)} <span class="pcrew">${p.crew}</span></label>`).join("")+`</div></div>`;
+  h+=`<div class="kv"><span class="k">Materials</span><span class="v">${!mats.length?'<span class="meta">none tracked</span>':short.length?`<span class="tag crit">${short.length} not ready</span>`:'<span class="tag good">Ready</span>'}</span></div>`;
+  if(j.startIdx!=null){
+    h+=`<div class="schsec"><div class="schlabel">Weather window ${conflicts.length?`<span class="tag crit">${conflicts.length} rain-risk</span>`:'<span class="tag good">clear</span>'}</div><div class="wwin">`+occ.map(i=>{const info=dayInfo(i);return `<div class="wcell ${info.ok?"":"no"}"><b>${esc(info.short)}</b><span>${info.precip}%</span><span class="conf ${info.conf.toLowerCase()}">${info.conf}</span></div>`;}).join("")+`</div></div>`;
+  }
+  h+=`<div class="schsec"><div class="schlabel">Job stages <button class="btn sm" data-tmpl="${j.id}">Reset from ${j.type} template</button></div>`;
+  h+=j.stages.map((s,i)=>`<label class="stagerow"><input type="checkbox" data-stage="${j.id}:${i}" ${s.included?"checked":""}> <span class="${s.included?"":"muted"}">${esc(s.name)}</span>${s.ws?' <span class="tag ext" title="weather-sensitive">☂</span>':""}<span class="right"><input type="checkbox" data-stagedone="${j.id}:${i}" ${s.done?"checked":""}> done</span></label>`).join("");
+  h+=`</div>`;
+  h+=`<div class="actions"><button class="btn pri" data-suggest="${j.id}">Suggest best start (avoid rain)</button><button class="btn" id="drawerClose">Close</button></div>`;
+  el("drawer").innerHTML=h; el("drawer").classList.add("open"); el("scrim").classList.add("open");
 }
 
 /* ---------- MATERIALS (PO flow: need → draft PO → on order → received) ---------- */
@@ -522,7 +609,7 @@ function openJob(id){
   if(j.stage==="lead") acts=A("Convert to Estimate",`data-adv="${j.id}"`);
   else if(j.stage==="estimate") acts=A("Build Quote",`data-quote="${j.id}"`);
   else if(j.stage==="quoted") acts=A("Send for Signature + Deposit",`data-send="${j.id}"`)+A("Mark signed &amp; deposit paid",`data-adv="${j.id}"`,"");
-  else if(j.stage==="scheduled") acts=(j.date?"":A("Set date &amp; crew",`data-schedule2="${j.id}"`))+A("Assign / Change Crew",`data-assign="${j.id}"`,"")+A("Start job",`data-adv="${j.id}"`);
+  else if(j.stage==="scheduled") acts=A("Edit schedule (dates, crew, stages)",`data-schedule2="${j.id}"`)+A("Assign / Change Crew",`data-assign="${j.id}"`,"")+A("Start job",`data-adv="${j.id}"`);
   else if(j.stage==="in_progress") acts=A("Mark Complete → Invoice",`data-adv="${j.id}"`);
   else if(j.stage==="invoiced") acts=A("Send payment reminder",`data-remind="${j.id}"`,"")+A("Mark Paid",`data-adv="${j.id}"`);
   else acts=`<div class="meta">Job closed and paid. 🎉</div>`;
@@ -532,7 +619,7 @@ function openJob(id){
   h+=`<div class="kv"><span class="k">Type</span><span class="v"><span class="tag ${j.type==="exterior"?"ext":"int"}">${j.type}</span></span></div>`;
   h+=`<div class="kv"><span class="k">Value</span><span class="v tnum">${j.value?usd(j.value):"Not quoted"}</span></div>`;
   h+=`<div class="kv"><span class="k">Crew</span><span class="v">${crewName(j.crew)}</span></div>`;
-  h+=`<div class="kv"><span class="k">Scheduled</span><span class="v">${j.date?esc(j.date):"To be scheduled"}</span></div>`;
+  h+=`<div class="kv"><span class="k">Scheduled</span><span class="v">${j.startIdx!=null?esc(dayInfo(j.startIdx).long):"To be scheduled"}</span></div>`;
   if(mats.length) h+=`<div class="kv"><span class="k">Materials</span><span class="v">${short.length?`<span class="tag crit">${short.length} to order</span>`:`<span class="tag good">On hand</span>`}</span></div>`;
   h+=`<div class="actions">${acts}</div>`;
   h+=`<div class="actions" style="margin-top:8px"><button class="btn" id="drawerClose">Close</button></div>`;
@@ -574,10 +661,10 @@ function buildQuote(jobId){
   el("addli").onclick=()=>{items.push({d:"New line",q:1,p:0});refresh();};bind();
 }
 function scheduleJob(jobId){
-  const jobOpts=DB.jobs.filter(j=>["quoted","scheduled"].includes(j.stage)).map(j=>({v:j.id,l:j.name}));
-  const days=weekModel();
-  modal("Schedule Job",fld("Job","job",{type:"select",options:jobOpts})+`<div class="field two">`+fld("Day","day",{type:"select",options:days.map(d=>({v:d.label,l:d.label+(d.ok?"":" (rain)")}))})+fld("Crew","crew",{type:"select",options:DB.crews.map(c=>({v:c.id,l:c.name}))})+`</div>`,
-  d=>{const jb=DB.jobs.find(j=>j.id===d.job);if(jb){jb.stage="scheduled";jb.date=d.day;jb.crew=d.crew;}closeOverlays();toast("Scheduled "+(jb?jb.name:"")+" · "+d.day+" · "+crewName(d.crew));VIEW="schedule";syncTabs();render();},"Schedule");
+  const jobOpts=DB.jobs.filter(j=>["quoted","scheduled","estimate"].includes(j.stage)).map(j=>({v:j.id,l:j.name}));
+  const dayOpts=[]; for(let i=0;i<14;i++){ if(isWork(i)){const info=dayInfo(i); dayOpts.push({v:String(i),l:info.long+" · "+info.precip+"%"+(info.ok?"":" (rain)")});} }
+  modal("Schedule Job",fld("Job","job",{type:"select",options:jobOpts})+`<div class="field two">`+fld("Start day","day",{type:"select",options:dayOpts})+fld("Crew","crew",{type:"select",options:DB.crews.map(c=>({v:c.id,l:c.name}))})+`</div>`,
+  d=>{const jb=DB.jobs.find(j=>j.id===d.job);if(jb){ensureSched(jb);jb.stage="scheduled";jb.startIdx=+d.day;jb.crew=d.crew;}closeOverlays();const cf=jb?jobRainConflicts(jb):[];toast("Scheduled "+(jb?jb.name:"")+" · "+dayInfo(+d.day).short+" · "+crewName(d.crew)+(cf.length?` — ⚠ ${cf.length} rain-risk day(s)`:""));VIEW="schedule";syncTabs();render();},"Schedule");
   if(jobId)setTimeout(()=>{const s=el("modal").querySelector('select[name=job]');if(s)s.value=jobId;},0);
 }
 function assignCrew(jobId){
@@ -604,9 +691,13 @@ document.addEventListener("click",e=>{
   if(t.closest("[data-quote]")){buildQuote(t.closest("[data-quote]").dataset.quote);return;}
   if(t.closest("[data-send]")){const id=t.closest("[data-send]").dataset.send;const j=DB.jobs.find(x=>x.id===id);toast("Sent to "+custName(j.cust)+" for e-signature + deposit");closeOverlays();return;}
   if(t.closest("[data-assign]")){assignCrew(t.closest("[data-assign]").dataset.assign);return;}
-  if(t.closest("[data-schedule2]")){scheduleJob(t.closest("[data-schedule2]").dataset.schedule2);return;}
+  if(t.closest("[data-schedule2]")){openScheduleJob(t.closest("[data-schedule2]").dataset.schedule2);return;}
+  if(t.closest("[data-schedjob]")){openScheduleJob(t.closest("[data-schedjob]").dataset.schedjob);return;}
+  if(t.closest("[data-applysug]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-applysug]").dataset.applysug);ensureSched(j);j.startIdx=suggestStart(j);j.crew=j.crew||(j.type==="exterior"?"A":"B");if(["lead","estimate","quoted"].includes(j.stage))j.stage="scheduled";const cf=jobRainConflicts(j);toast("Scheduled "+j.name+" · "+dayInfo(j.startIdx).short+(cf.length?" — ⚠ rain-risk":" · clear window"));render();return;}
+  if(t.closest("[data-dur]")){const s=t.closest("[data-dur]").dataset.dur,p=s.indexOf(":"),j=DB.jobs.find(x=>x.id===s.slice(0,p));j.days=Math.max(1,(j.days||1)+(s.slice(p+1)==="+"?1:-1));openScheduleJob(j.id);render();return;}
+  if(t.closest("[data-suggest]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-suggest]").dataset.suggest);ensureSched(j);j.startIdx=suggestStart(j);if(["lead","estimate","quoted"].includes(j.stage))j.stage="scheduled";toast("Moved to first clear window: "+dayInfo(j.startIdx).short);openScheduleJob(j.id);render();return;}
+  if(t.closest("[data-tmpl]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-tmpl]").dataset.tmpl);j.stages=jobStages(j.type);toast("Stages reset from "+j.type+" template");openScheduleJob(j.id);return;}
   if(t.closest("[data-remind]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-remind]").dataset.remind);toast("Payment reminder sent to "+custName(j.cust));return;}
-  if(t.closest("[data-schedule]")){const b=t.closest("[data-schedule]");const j=DB.jobs.find(x=>x.id===b.dataset.schedule);j.stage="scheduled";j.date=b.dataset.day;j.crew=j.type==="exterior"?"A":"B";toast("Scheduled "+j.name+" · "+b.dataset.day);render();return;}
   if(t.closest("[data-addpo]")){DB.materials[+t.closest("[data-addpo]").dataset.addpo].status="draft";toast("Added to draft PO");render();return;}
   if(t.closest("[data-rmpo]")){DB.materials[+t.closest("[data-rmpo]").dataset.rmpo].status="need";render();return;}
   if(t.closest("[data-sendpo]")){const v=t.closest("[data-sendpo]").dataset.sendpo;const items=DB.materials.filter(m=>m.vendor===v&&m.status==="draft");const total=items.reduce((a,m)=>a+Math.max(0,m.need-m.onHand)*m.cost,0);items.forEach(m=>{m.status="ordered";m.eta="Thu";});toast("PO sent to "+v+" rep — "+items.length+" item(s), "+usd(total)+" · recorded in QuickBooks");render();return;}
@@ -614,6 +705,21 @@ document.addEventListener("click",e=>{
   if(t.closest("[data-newoppfor]")){newOpportunity(t.closest("[data-newoppfor]").dataset.newoppfor);return;}
   if(t.id==="drawerClose"||t.id==="scrim")closeOverlays();
 });
+
+/* ---------- change events: crew, stages, people override ---------- */
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.matches&&t.matches("[data-crewsel]")){const j=DB.jobs.find(x=>x.id===t.dataset.crewsel);j.crew=t.value;j.people=null;openScheduleJob(j.id);render();return;}
+  if(t.matches&&t.matches("[data-stage]")){const s=t.dataset.stage,p=s.indexOf(":"),j=DB.jobs.find(x=>x.id===s.slice(0,p));j.stages[+s.slice(p+1)].included=t.checked;openScheduleJob(j.id);render();return;}
+  if(t.matches&&t.matches("[data-stagedone]")){const s=t.dataset.stagedone,p=s.indexOf(":"),j=DB.jobs.find(x=>x.id===s.slice(0,p));j.stages[+s.slice(p+1)].done=t.checked;return;}
+  if(t.matches&&t.matches("[data-person]")){const s=t.dataset.person,p=s.indexOf(":"),j=DB.jobs.find(x=>x.id===s.slice(0,p)),name=s.slice(p+1);const cur=[...effectivePeople(j)],i=cur.indexOf(name);if(i>=0)cur.splice(i,1);else cur.push(name);j.people=cur;return;}
+});
+
+/* ---------- drag & drop reschedule (reapplies rain logic) ---------- */
+let dragId=null;
+document.addEventListener("dragstart",e=>{const c=e.target.closest&&e.target.closest("[data-drag]");if(c){dragId=c.dataset.drag;e.dataTransfer.effectAllowed="move";}});
+document.addEventListener("dragover",e=>{if(e.target.closest&&e.target.closest("[data-drop]"))e.preventDefault();});
+document.addEventListener("drop",e=>{const d=e.target.closest&&e.target.closest("[data-drop]");if(d&&dragId){e.preventDefault();const j=DB.jobs.find(x=>x.id===dragId);ensureSched(j);j.startIdx=+d.dataset.drop;if(["lead","estimate","quoted"].includes(j.stage))j.stage="scheduled";const cf=jobRainConflicts(j);toast(j.name+" → "+dayInfo(j.startIdx).short+(cf.length?` · ⚠ ${cf.length} rain-risk day(s) — try Suggest best start`:" · clear window"));dragId=null;render();}});
 
 /* new menu */
 function closeMenu(){el("newmenu").classList.remove("open");}
