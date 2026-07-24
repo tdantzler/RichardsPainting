@@ -1,0 +1,219 @@
+<title>Richard's Painting × SysSential — Build Review</title>
+<style>
+  :root{
+    --bg:#f5f7f8; --surface:#ffffff; --surface-2:#eef3f5; --ink:#0e1a24; --ink-2:#3d5563; --muted:#728796; --border:#e3eaed;
+    --brand:#0e1a24; --accent:#0a8f7f; --accent-ink:#076658; --accent-soft:#d8f3ee; --mint:#2fe4c2;
+    --good:#1f9d6b; --good-soft:#dcf1e8; --warn:#b9741a; --warn-soft:#f6e9d5; --info:#2b6cb0; --info-soft:#dde9f6;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --raise:0 1px 2px rgba(14,26,36,.06),0 10px 28px rgba(14,26,36,.06);
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0b141b; --surface:#111e28; --surface-2:#0e1a23; --ink:#e9f1f4; --ink-2:#aec4cf; --muted:#6f8794; --border:#1e3441;
+    --brand:#08121a; --accent:#2fe4c2; --accent-ink:#2fe4c2; --accent-soft:#0f3a37;
+    --good:#3fd08c; --good-soft:#123528; --warn:#e6a94e; --warn-soft:#3a2c12; --info:#6bb0f0; --info-soft:#14293b;
+    --raise:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.4);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0b141b; --surface:#111e28; --surface-2:#0e1a23; --ink:#e9f1f4; --ink-2:#aec4cf; --muted:#6f8794; --border:#1e3441;
+    --brand:#08121a; --accent:#2fe4c2; --accent-ink:#2fe4c2; --accent-soft:#0f3a37;
+    --good:#3fd08c; --good-soft:#123528; --warn:#e6a94e; --warn-soft:#3a2c12; --info:#6bb0f0; --info-soft:#14293b;
+    --raise:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f7f8; --surface:#ffffff; --surface-2:#eef3f5; --ink:#0e1a24; --ink-2:#3d5563; --muted:#728796; --border:#e3eaed;
+    --brand:#0e1a24; --accent:#0a8f7f; --accent-ink:#076658; --accent-soft:#d8f3ee;
+    --good:#1f9d6b; --good-soft:#dcf1e8; --warn:#b9741a; --warn-soft:#f6e9d5; --info:#2b6cb0; --info-soft:#dde9f6;
+    --raise:0 1px 2px rgba(14,26,36,.06),0 10px 28px rgba(14,26,36,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px 22px 60px}
+  a{color:var(--accent-ink)}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* hero */
+  .hero{background:var(--brand);color:#eaf4f2;border-radius:20px;padding:34px 32px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(47,228,194,.22),transparent 70%)}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mint)}
+  .hero h1{margin:12px 0 6px;font-size:32px;line-height:1.12;letter-spacing:-.02em;text-wrap:balance;max-width:20ch}
+  .hero p{margin:10px 0 0;font-size:17px;color:#bcd3ce;max-width:60ch}
+  .hero .who{margin-top:18px;font-size:13px;color:#8fb0a9;font-weight:600}
+
+  .section{margin-top:30px}
+  .section>h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+  .section>h2::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--accent)}
+  .lead{font-size:18px;line-height:1.5;max-width:66ch;margin:0 0 6px;font-weight:500}
+  .lead b{color:var(--accent-ink)}
+
+  /* progress */
+  .meter{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 22px;box-shadow:var(--raise)}
+  .meter .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .meter .pct{font-size:40px;font-weight:800;letter-spacing:-.02em;color:var(--accent-ink);line-height:1}
+  .meter .cap{font-weight:650;color:var(--ink-2)}
+  .bar{height:14px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin:14px 0 6px;border:1px solid var(--border)}
+  .bar i{display:block;height:100%;width:90%;background:linear-gradient(90deg,var(--accent),var(--mint));border-radius:999px}
+  .barlabels{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--muted)}
+
+  /* mapping cards */
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .rc{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;box-shadow:var(--raise);display:flex;flex-direction:column;gap:8px}
+  .rc .said{font-size:12px;color:var(--muted);font-weight:600}
+  .rc .said b{color:var(--ink-2)}
+  .rc .quote{font-size:15px;font-weight:650;line-height:1.35}
+  .rc .built{font-size:13.5px;color:var(--ink-2);font-weight:500}
+  .rc .built b{color:var(--ink)}
+  .status{align-self:flex-start;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:4px 10px;border-radius:999px;margin-top:2px}
+  .status.live{color:var(--good);background:var(--good-soft)}
+  .status.demo{color:var(--accent-ink);background:var(--accent-soft)}
+  .status.plan{color:var(--info);background:var(--info-soft)}
+  .status.yes{color:var(--warn);background:var(--warn-soft)}
+
+  /* callout */
+  .callout{background:var(--accent-soft);border:1px solid transparent;border-radius:16px;padding:20px 22px}
+  .callout h3{margin:0 0 6px;font-size:19px;color:var(--accent-ink)}
+  .callout p{margin:0;color:var(--ink-2);font-weight:500;max-width:64ch}
+
+  .checklist{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 22px;box-shadow:var(--raise)}
+  .checklist li{list-style:none;padding:11px 0;border-top:1px solid var(--border);display:flex;gap:12px;align-items:flex-start;font-weight:550}
+  .checklist li:first-child{border-top:0}
+  .checklist .n{flex:0 0 24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent-ink);font-weight:800;font-size:13px;display:grid;place-items:center}
+  .checklist li span.d{color:var(--muted);font-weight:600;font-size:13px}
+
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;font-size:15px;padding:13px 20px;border-radius:12px;border:1px solid var(--border);color:var(--ink);background:var(--surface)}
+  .btn.pri{background:var(--accent);color:#04231f;border-color:transparent}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .step{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--raise)}
+  .step .k{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent-ink)}
+  .step .t{font-weight:700;margin:6px 0 4px}
+  .step .d{font-size:13px;color:var(--ink-2);font-weight:500}
+
+  footer{margin-top:34px;color:var(--muted);font-size:13px;font-weight:600;text-align:center}
+  @media (max-width:760px){ .cards,.steps{grid-template-columns:1fr} .hero h1{font-size:26px} .meter .pct{font-size:32px} }
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Build Review · Operations Command Center</div>
+    <h1>Not new software. Your business, running in one place.</h1>
+    <p>You told us where your shop was leaking. This is what we built to fix it — the estimates, the schedule, the money, the crew, the weather — pulled together so the day-to-day runs without you in the middle of every step.</p>
+    <div class="who">Prepared for Josh West &amp; team · Richard's Painting of Summerville — by SysSential</div>
+  </div>
+
+  <div class="section">
+    <p class="lead">Here's the headline: <b>the build is roughly 90% done.</b> Almost everything you asked for is built and running right now — on sample data, because the last step is plugging in <b>your</b> accounts. Below is what you asked for, in your words, matched to what's built.</p>
+    <div class="meter">
+      <div class="top"><span class="pct">~90%</span><span class="cap">built and working today — the remaining ~10% is connecting your GoHighLevel, QuickBooks, and payment accounts.</span></div>
+      <div class="bar"><i></i></div>
+      <div class="barlabels"><span>Designed &amp; built</span><span>Your accounts → live</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>What you asked for → what we built</h2>
+    <div class="cards">
+
+      <div class="rc">
+        <div class="said">You said <b>(your email)</b></div>
+        <div class="quote">"A daily briefing — maybe an audio version — pulling weather, active jobs, who's out, new go-aheads, and the day's tasks."</div>
+        <div class="built"><b>Built &amp; tested.</b> A real morning briefing that reads the live forecast and your business and writes you a plain-language rundown — as text and an <b>audio track</b> you can listen to with your coffee.</div>
+        <span class="status live">Live now</span>
+      </div>
+
+      <div class="rc">
+        <div class="said">You said</div>
+        <div class="quote">"An app my crew uses for hours, time-off, and tasks — with an English/Spanish toggle — and text them at end of day to log hours."</div>
+        <div class="built"><b>Designed, crew layer demoed.</b> Crew assignment, availability, and swapping specific people are in the dashboard today. The crew's own hours / time-off / end-of-day-text portal with the <b>Spanish toggle</b> is the next build, designed English-first.</div>
+        <span class="status plan">Next build</span>
+      </div>
+
+      <div class="rc">
+        <div class="said">You asked</div>
+        <div class="quote">"What do I lose if I cancel?"</div>
+        <div class="built"><b>Answered — you're never trapped.</b> The core plumbing lives inside <b>your</b> GoHighLevel, which you own. And you pick the comfort level: from shared hosting up to a fully standalone setup that transfers to you, keys and all.</div>
+        <span class="status yes">Decided</span>
+      </div>
+
+      <div class="rc">
+        <div class="said">You asked</div>
+        <div class="quote">"Can we build this over Zoom so my office manager can take part?"</div>
+        <div class="built"><b>Yes — that's how we work.</b> Your office manager is the daily power user, so she's in the room shaping it. Today's review is exactly that.</div>
+        <span class="status yes">Yes</span>
+      </div>
+
+      <div class="rc">
+        <div class="said">You noted</div>
+        <div class="quote">"The corporate site/domain is about a month out from migration."</div>
+        <div class="built"><b>Fits the plan.</b> We built everything that doesn't depend on the site, so nothing waited. We connect your site the moment corporate's rebuild is ready.</div>
+        <span class="status yes">On track</span>
+      </div>
+
+      <div class="rc">
+        <div class="said">Your wish list <b>(the numbers you can't see today)</b></div>
+        <div class="quote">Interior vs. exterior backlog · running labor &amp; material costs · what's owed and overdue · next week's weather beside the schedule.</div>
+        <div class="built"><b>All on one screen.</b> That's the Command Center dashboard — the exact "numbers I wish I could see" list, at a glance, with the ability to act on them.</div>
+        <span class="status demo">Demo-ready</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>The engine we built underneath (your proposal, delivered)</h2>
+    <div class="cards">
+      <div class="rc">
+        <div class="quote">Estimate → cash <span class="status demo">Demo-ready</span></div>
+        <div class="built">Your #1 bottleneck. A pipeline from lead → estimate → quote → e-sign + deposit → schedule → invoice → paid, that you actually click through and act on. Build a quote in seconds; send it for signature and deposit.</div>
+      </div>
+      <div class="rc">
+        <div class="quote">Weather-aware scheduling &amp; dispatch <span class="status demo">Demo-ready</span></div>
+        <div class="built">A multi-week calendar you drag jobs across. It suggests the best day and crew, avoids rain for exterior work, and respects crew and materials — with a rain-risk threshold <b>you</b> set yourself.</div>
+      </div>
+      <div class="rc">
+        <div class="quote">Materials &amp; purchasing <span class="status demo">Demo-ready</span></div>
+        <div class="built">On-hand vs. what to order, grouped into purchase orders by vendor, with preview, request-for-quote, and cost flowing to QuickBooks. Materials-not-ready blocks a job from scheduling until it's in.</div>
+      </div>
+      <div class="rc">
+        <div class="quote">Quick wins + live weather engine <span class="status live">Live / ready</span></div>
+        <div class="built">Instant lead replies, missed-call text-back, and review requests are ready to switch on. The live weather feed and data engine that power the briefing and dashboard are already running.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="callout">
+      <h3>See it working</h3>
+      <p>This isn't slideware. It's an interactive demo running on sample data — click through the pipeline, drag a job onto a rainy day and watch it push back, build a purchase order, order materials. It's the shape of your shop, in software.</p>
+      <div class="cta">
+        <a class="btn pri" href="https://tdantzler.github.io/RichardsPainting/command-center.html" target="_blank" rel="noopener">Open the live Command Center demo →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>To switch it from demo to your live shop, we need from you</h2>
+    <div class="checklist">
+      <ul style="margin:0;padding:0">
+        <li><span class="n">1</span><div><b>GoHighLevel access.</b> <span class="d">Your account admin grants SysSential collaborator access to your sub-account. One light step — no new subscription.</span></div></li>
+        <li><span class="n">2</span><div><b>Connect QuickBooks.</b> <span class="d">One authorization so invoices, receivables, and material costs are real, not sample.</span></div></li>
+        <li><span class="n">3</span><div><b>Connect your payment processor.</b> <span class="d">Link Stripe to QuickBooks so payments record themselves — ending the manual entry.</span></div></li>
+        <li><span class="n">4</span><div><b>Confirm the site/domain timing.</b> <span class="d">Tell us where corporate's rebuild stands so we can slot in the integration.</span></div></li>
+        <li><span class="n">5</span><div><b>Office manager + a crew lead.</b> <span class="d">Fifteen minutes each to shape the daily and crew-facing pieces around how you actually work.</span></div></li>
+      </ul>
+    </div>
+    <p class="lead" style="margin-top:14px">Grant those and we flip the switches — the same screens you're looking at start running your real jobs, your real money, your real crew. <b>The heavy lifting is done and waiting.</b></p>
+  </div>
+
+  <div class="section">
+    <h2>What happens next</h2>
+    <div class="steps">
+      <div class="step"><div class="k">This week</div><div class="t">Access granted</div><div class="d">GHL collaborator access + QuickBooks connected. We begin swapping sample data for yours.</div></div>
+      <div class="step"><div class="k">Days, not weeks</div><div class="t">Quick wins live</div><div class="d">Instant lead replies, missed-call text-back, review requests, and your daily briefing on your real numbers.</div></div>
+      <div class="step"><div class="k">From there</div><div class="t">Full engine on</div><div class="d">Estimate-to-cash, scheduling, materials, and the command center running your shop — refined with you as we go.</div></div>
+    </div>
+  </div>
+
+  <footer>SysSential · hello@syssential.com — built for Richard's Painting of Summerville</footer>
+</div>
