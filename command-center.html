@@ -93,6 +93,36 @@
   :root[data-skin="lcars"] .lane{background:#0b0b0b;border:0;border-left:12px solid #9999ff;border-radius:0 6px 6px 0}
   :root[data-skin="lcars"] .calcell{border-color:#1a1a1a}
   :root[data-skin="lcars"] .caps>summary::before{color:#ff9900}
+  /* LCARS refinements — capsule controls, blue + red forward (per TNG reference) */
+  :root[data-skin="lcars"] .tag,:root[data-skin="lcars"] .pill,:root[data-skin="lcars"] .chip,:root[data-skin="lcars"] .conf{border-radius:999px}
+  :root[data-skin="lcars"] .btn,:root[data-skin="lcars"] .btn-primary,:root[data-skin="lcars"] .fab,:root[data-skin="lcars"] .btn.pri,:root[data-skin="lcars"] .btn.send,:root[data-skin="lcars"] .iconbtn,:root[data-skin="lcars"] .skinsel{border-radius:999px}
+  :root[data-skin="lcars"] .kpi{border-radius:0 999px 999px 0}
+  :root[data-skin="lcars"] .chip-job{border-radius:999px}
+  :root[data-skin="lcars"] .qbtn{border-radius:0 999px 999px 0;border-left-width:14px}
+  :root[data-skin="lcars"] .jobcard{background:#0b0b0b;border:0;border-left:9px solid #6c8ecf;border-radius:0 999px 999px 0;padding-left:16px}
+  /* palette: lean blue with red/yellow accents */
+  :root[data-skin="lcars"] .grid>.card:nth-of-type(4n+1){border-left-color:#6c8ecf}
+  :root[data-skin="lcars"] .grid>.card:nth-of-type(4n+2){border-left-color:#cc6666}
+  :root[data-skin="lcars"] .grid>.card:nth-of-type(4n+3){border-left-color:#ffcc66}
+  :root[data-skin="lcars"] .grid>.card:nth-of-type(4n){border-left-color:#9fb8e8}
+  :root[data-skin="lcars"] .weather{border-left-color:#6c8ecf}
+  :root[data-skin="lcars"] nav.tabs button{background:#4a6aa8;color:#dbe6ff}
+  :root[data-skin="lcars"] nav.tabs button:nth-child(2){background:#cc6666;color:#180404}
+  :root[data-skin="lcars"] nav.tabs button:nth-child(3){background:#ffcc66;color:#181200}
+  :root[data-skin="lcars"] nav.tabs button:nth-child(4){background:#9fb8e8;color:#001129}
+  :root[data-skin="lcars"] nav.tabs button:nth-child(5){background:#cc99cc;color:#18001a}
+  :root[data-skin="lcars"] nav.tabs button.on{background:#ff9900;color:#000}
+  :root[data-skin="lcars"] .kpi:nth-child(1) .stripe{background:#6c8ecf}
+  :root[data-skin="lcars"] .kpi:nth-child(2) .stripe{background:#cc6666}
+  :root[data-skin="lcars"] .kpi:nth-child(3) .stripe{background:#ffcc66}
+  :root[data-skin="lcars"] .kpi:nth-child(4) .stripe{background:#ff9900}
+  :root[data-skin="lcars"] .lane:nth-of-type(1){border-left-color:#6c8ecf}
+  :root[data-skin="lcars"] .lane:nth-of-type(2){border-left-color:#cc6666}
+  :root[data-skin="lcars"] .lane:nth-of-type(3){border-left-color:#ffcc66}
+  :root[data-skin="lcars"] .lane:nth-of-type(4){border-left-color:#ff9900}
+  :root[data-skin="lcars"] .lane:nth-of-type(5){border-left-color:#9fb8e8}
+  :root[data-skin="lcars"] .lane:nth-of-type(6){border-left-color:#cc99cc}
+  :root[data-skin="lcars"] .lane:nth-of-type(7){border-left-color:#6c8ecf}
 
   .skinsel{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--ink);font:inherit;font-weight:650;font-size:13px;padding:8px 10px;border-radius:9px;cursor:pointer}
   .setp{position:fixed;top:62px;right:20px;bottom:auto}
@@ -499,8 +529,8 @@ function vPipeline(){
   let h=`<div class="board">`;
   STAGES.forEach(st=>{
     const items=DB.jobs.filter(j=>j.stage===st);
-    h+=`<div class="lane"><h4>${STAGE_LABEL[st]}<span class="n">${items.length}</span></h4>`;
-    h+=items.map(j=>`<div class="jobcard" data-job="${j.id}"><div class="jn">${esc(j.name)}</div><div class="jm">${esc(custName(j.cust))}</div><div class="jf"><span class="tag ${j.type==="exterior"?"ext":"int"}">${j.type}</span>${j.daysLate?'<span class="tag crit">'+j.daysLate+'d late</span>':''}<span class="val tnum">${j.value?usd(j.value):"—"}</span></div></div>`).join("");
+    h+=`<div class="lane" data-dropstage="${st}"><h4>${STAGE_LABEL[st]}<span class="n">${items.length}</span></h4>`;
+    h+=items.map(j=>`<div class="jobcard" draggable="true" data-drag="${j.id}" data-job="${j.id}"><div class="jn">${esc(j.name)}</div><div class="jm">${esc(custName(j.cust))}</div><div class="jf"><span class="tag ${j.type==="exterior"?"ext":"int"}">${j.type}</span>${j.daysLate?'<span class="tag crit">'+j.daysLate+'d late</span>':''}<span class="val tnum">${j.value?usd(j.value):"—"}</span></div></div>`).join("");
     h+=`</div>`;
   });
   h+=`</div>`;
@@ -749,8 +779,15 @@ document.addEventListener("change",e=>{
 /* ---------- drag & drop reschedule (reapplies rain logic) ---------- */
 let dragId=null;
 document.addEventListener("dragstart",e=>{const c=e.target.closest&&e.target.closest("[data-drag]");if(c){dragId=c.dataset.drag;e.dataTransfer.effectAllowed="move";}});
-document.addEventListener("dragover",e=>{if(e.target.closest&&e.target.closest("[data-drop]"))e.preventDefault();});
-document.addEventListener("drop",e=>{const d=e.target.closest&&e.target.closest("[data-drop]");if(d&&dragId){e.preventDefault();const j=DB.jobs.find(x=>x.id===dragId);ensureSched(j);j.startIdx=+d.dataset.drop;if(["lead","estimate","quoted"].includes(j.stage))j.stage="scheduled";const cf=jobRainConflicts(j);toast(j.name+" → "+dayInfo(j.startIdx).short+(cf.length?` · ⚠ ${cf.length} rain-risk day(s) — try Suggest best start`:" · clear window"));dragId=null;render();}});
+document.addEventListener("dragover",e=>{if(e.target.closest&&(e.target.closest("[data-drop]")||e.target.closest("[data-dropstage]")))e.preventDefault();});
+document.addEventListener("drop",e=>{
+  if(!dragId)return;
+  const lane=e.target.closest&&e.target.closest("[data-dropstage]");
+  if(lane){e.preventDefault();const j=DB.jobs.find(x=>x.id===dragId);if(j){j.stage=lane.dataset.dropstage;if(j.stage==="paid")j.daysLate=0;toast(j.name+" → "+STAGE_LABEL[j.stage]);}dragId=null;render();return;}
+  const d=e.target.closest&&e.target.closest("[data-drop]");
+  if(d){e.preventDefault();const j=DB.jobs.find(x=>x.id===dragId);ensureSched(j);j.startIdx=+d.dataset.drop;if(["lead","estimate","quoted"].includes(j.stage))j.stage="scheduled";const cf=jobRainConflicts(j);toast(j.name+" → "+dayInfo(j.startIdx).short+(cf.length?` · ⚠ ${cf.length} rain-risk day(s) — try Suggest best start`:" · clear window"));dragId=null;render();return;}
+  dragId=null;
+});
 
 /* new menu */
 function closeMenu(){el("newmenu").classList.remove("open");}
