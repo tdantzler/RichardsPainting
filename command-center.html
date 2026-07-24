@@ -243,6 +243,21 @@
   .btn.sm{padding:6px 10px;font-size:12px}
   .btn.warn{color:var(--warn)} .btn.crit{color:var(--crit)}
 
+  /* materials filters + PO doc */
+  .kpi.mfilter{cursor:pointer;user-select:none}
+  .kpi.mfilter:hover{border-color:var(--accent)}
+  .kpi.mfilter.off{opacity:.42}
+  .kpi .cbx{font-size:12px;margin-right:2px}
+  tr.greyed{opacity:.42}
+  tr.greyed td{color:var(--muted)}
+  tr.grouprow td{background:var(--surface-2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 10px}
+  .podoc{border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--surface-2)}
+  .pohead{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .potbl{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:6px}
+  .potbl th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--border)}
+  .potbl td{padding:7px 8px;border-bottom:1px solid var(--border);font-weight:600}
+  .potbl th:nth-child(n+2),.potbl td:nth-child(n+2){text-align:right}
+
   /* calendar + dispatch */
   .cal{border:1px solid var(--border);border-radius:12px;overflow:hidden}
   .calhead{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface-2)}
@@ -478,6 +493,10 @@ const CAPS=[
   {t:"Tap-to-talk feedback",d:"Hit the button, say what is wrong, it files straight to us."}
 ];
 
+/* materials filter state (all groups shown by default) + PO number helper */
+const MATFILTER = {need:true,draft:true,ordered:true,stock:true};
+function poNumber(v){ const a=v.replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase()||"VEN"; const n=1000+([...v].reduce((s,c)=>s+c.charCodeAt(0),0)%900); return "PO-"+a+"-"+n; }
+
 /* ---------- router ---------- */
 let VIEW="overview";
 el("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(!b)return;VIEW=b.dataset.view;[...el("tabs").children].forEach(x=>x.classList.toggle("on",x===b));render();});
@@ -615,40 +634,62 @@ function openScheduleJob(id){
   el("drawer").innerHTML=h; el("drawer").classList.add("open"); el("scrim").classList.add("open");
 }
 
-/* ---------- MATERIALS (PO flow: need → draft PO → on order → received) ---------- */
+/* ---------- MATERIALS (filterable · PO preview · RFQ) ---------- */
+const matQty=m=>Math.max(0,m.need-m.onHand);
 function vMaterials(){
-  const qty=m=>Math.max(0,m.need-m.onHand);
   const jobName=id=>(DB.jobs.find(j=>j.id===id)||{}).name||id;
-  const need=DB.materials.filter(m=>m.status==="need");
+  const META={need:{label:"Need to order",sub:"not yet on a PO"},draft:{label:"In draft PO",sub:"ready to send"},ordered:{label:"On order",sub:"awaiting delivery"},stock:{label:"In stock",sub:"on hand"}};
+  const counts={need:0,draft:0,ordered:0,stock:0}; DB.materials.forEach(m=>{counts[m.status]=(counts[m.status]||0)+1;});
+  const waiting=new Set(DB.materials.filter(m=>m.onHand<m.need&&m.status!=="ordered").map(m=>m.job)).size;
+
+  let h=`<div class="kpis" style="grid-template-columns:repeat(4,1fr)">`;
+  ["need","draft","ordered","stock"].forEach(k=>{
+    const on=MATFILTER[k];
+    h+=`<div class="kpi mfilter ${on?"":"off"}" data-matfilter="${k}"><span class="stripe"></span><div class="label"><span class="cbx">${on?"☑":"☐"}</span> ${META[k].label}</div><div class="val tnum">${counts[k]||0}</div><div class="sub">${META[k].sub}</div></div>`;
+  });
+  h+=`</div><div class="meta" style="margin:2px 0 14px">${waiting} job${waiting===1?"":"s"} blocked on materials · uncheck a tile to hide that group below and focus on what's left.</div>`;
+
   const draft=DB.materials.filter(m=>m.status==="draft");
-  const ordered=DB.materials.filter(m=>m.status==="ordered");
   const vendors=[...new Set(draft.map(m=>m.vendor))];
-  let h=`<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
-    <div class="kpi ${need.length?"warn":"good"}"><span class="stripe"></span><div class="label">Need to order</div><div class="val tnum">${need.length}</div><div class="sub">not yet on a PO</div></div>
-    <div class="kpi ${draft.length?"warn":""}"><span class="stripe"></span><div class="label">In draft PO</div><div class="val tnum">${draft.length}</div><div class="sub">${vendors.length} vendor(s)</div></div>
-    <div class="kpi"><span class="stripe"></span><div class="label">On order</div><div class="val tnum">${ordered.length}</div><div class="sub">awaiting delivery</div></div>
-    <div class="kpi"><span class="stripe"></span><div class="label">Jobs waiting</div><div class="val tnum">${new Set(DB.materials.filter(m=>m.onHand<m.need&&m.status!=="ordered").map(m=>m.job)).size}</div><div class="sub">blocked on materials</div></div></div>`;
   if(vendors.length){
     h+=`<div class="card" style="margin-bottom:14px"><h3 class="ttl">Draft purchase orders <span class="count">grouped by vendor</span></h3>`;
     vendors.forEach(v=>{
       const items=draft.filter(m=>m.vendor===v);
-      const units=items.reduce((a,m)=>a+qty(m),0);
-      const total=items.reduce((a,m)=>a+qty(m)*m.cost,0);
-      h+=`<div class="suggest"><div class="sx"><b>${esc(v)}</b> — ${items.length} item(s), ${units} units · <b>${usd(total)}</b><div class="meta">${items.map(m=>esc(m.item)+" ×"+qty(m)).join(" · ")}</div></div><span class="spacer" style="flex:1"></span><button class="btn sm pri" data-sendpo="${esc(v)}">Send PO to ${esc(v)} rep</button></div>`;
+      const units=items.reduce((a,m)=>a+matQty(m),0);
+      const total=items.reduce((a,m)=>a+matQty(m)*m.cost,0);
+      h+=`<div class="suggest"><div class="sx"><b>${esc(v)}</b> · ${poNumber(v)} — ${items.length} item(s), ${units} units · <b>${usd(total)}</b><div class="meta">${items.map(m=>esc(m.item)+" ×"+matQty(m)).join(" · ")}</div></div><span class="spacer" style="flex:1"></span><button class="btn sm" data-previewpo="${esc(v)}">Preview</button><button class="btn sm pri" data-sendpo="${esc(v)}">Send PO</button></div>`;
     });
     h+=`</div>`;
   }
-  h+=`<div class="card"><h3 class="ttl">Materials — on hand vs need to order</h3><div class="tbl-wrap"><table><thead><tr><th>Material</th><th>Job</th><th>Vendor</th><th>On hand</th><th>Needed</th><th>Unit</th><th>Status</th><th></th></tr></thead><tbody>`;
-  DB.materials.forEach((m,i)=>{
+
+  const rowHtml=(m,i,grey)=>{
     let s="",a="";
-    if(m.status==="stock"){s='<span class="tag good">In stock</span>';}
-    else if(m.status==="need"){s=`<span class="tag crit">Order ${qty(m)}</span>`;a=`<button class="btn sm pri" data-addpo="${i}">Add to PO</button>`;}
+    if(m.status==="stock") s='<span class="tag good">In stock</span>';
+    else if(m.status==="need"){s=`<span class="tag crit">Order ${matQty(m)}</span>`;a=`<button class="btn sm pri" data-addpo="${i}">Add to PO</button>`;}
     else if(m.status==="draft"){s='<span class="tag info">In draft PO</span>';a=`<button class="btn sm" data-rmpo="${i}">Remove</button>`;}
     else if(m.status==="ordered"){s=`<span class="tag info">On order · ETA ${esc(m.eta||"~2 days")}</span>`;a=`<button class="btn sm" data-receive="${i}">Mark received</button>`;}
-    h+=`<tr><td>${esc(m.item)}</td><td>${esc(jobName(m.job))}</td><td>${esc(m.vendor)}</td><td class="tnum">${m.onHand}</td><td class="tnum">${m.need}</td><td class="tnum">${usd(m.cost)}</td><td>${s}</td><td>${a}</td></tr>`;
-  });
+    return `<tr class="${grey?"greyed":""}"><td>${esc(m.item)}</td><td>${esc(jobName(m.job))}</td><td>${esc(m.vendor)}</td><td class="tnum">${m.onHand}</td><td class="tnum">${m.need}</td><td class="tnum">${usd(m.cost)}</td><td>${s}</td><td>${grey?"":a}</td></tr>`;
+  };
+  const all=DB.materials.map((m,i)=>({m,i}));
+  const active=all.filter(x=>MATFILTER[x.m.status]), hidden=all.filter(x=>!MATFILTER[x.m.status]);
+  h+=`<div class="card"><h3 class="ttl">Materials <span class="count">${active.length} shown${hidden.length?` · ${hidden.length} hidden`:""}</span></h3><div class="tbl-wrap"><table><thead><tr><th>Material</th><th>Job</th><th>Vendor</th><th>On hand</th><th>Needed</th><th>Unit</th><th>Status</th><th></th></tr></thead><tbody>`;
+  h+=active.map(x=>rowHtml(x.m,x.i,false)).join("")||`<tr><td colspan="8" class="meta">Nothing in the checked groups.</td></tr>`;
+  if(hidden.length){ h+=`<tr class="grouprow"><td colspan="8">Hidden by filter (${hidden.length})</td></tr>`+hidden.map(x=>rowHtml(x.m,x.i,true)).join(""); }
   h+=`</tbody></table></div></div>`;
   el("view").innerHTML=h;
+}
+
+function openPO(v){
+  const items=DB.materials.filter(m=>m.vendor===v&&m.status==="draft");
+  if(!items.length){toast("No draft items for "+v);return;}
+  const total=items.reduce((a,m)=>a+matQty(m)*m.cost,0);
+  const rows=items.map(m=>`<tr><td>${esc(m.item)}</td><td class="tnum">${matQty(m)}</td><td class="tnum">${usd(m.cost)}</td><td class="tnum">${usd(matQty(m)*m.cost)}</td></tr>`).join("");
+  const body=`<div class="podoc"><div class="pohead"><div><b>Richard's Painting of Summerville</b><div class="meta">201 Sigma Dr, Summerville SC</div></div><div style="text-align:right"><b>${poNumber(v)}</b><div class="meta">Vendor: ${esc(v)}</div></div></div>
+    <table class="potbl"><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Ext</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="total"><span>PO total</span><span class="tnum">${usd(total)}</span></div>
+    <div class="meta">Ship to Richard's Painting · Terms Net 30 · records to QuickBooks on send.</div></div>`;
+  el("modal").innerHTML=`<h2>Purchase Order — ${esc(v)}</h2>${body}<div class="foot"><button type="button" class="btn" id="mcancel">Close</button><button type="button" class="btn" data-rfq="${esc(v)}">Request quote (RFQ)</button><button type="button" class="btn pri" data-sendpo="${esc(v)}">Send PO</button></div>`;
+  el("modal").classList.add("open");el("scrim").classList.add("open");el("mcancel").onclick=closeOverlays;
 }
 
 /* ---------- CUSTOMERS ---------- */
@@ -759,9 +800,12 @@ document.addEventListener("click",e=>{
   if(t.closest("[data-suggest]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-suggest]").dataset.suggest);ensureSched(j);j.startIdx=suggestStart(j);if(["lead","estimate","quoted"].includes(j.stage))j.stage="scheduled";toast("Moved to first clear window: "+dayInfo(j.startIdx).short);openScheduleJob(j.id);render();return;}
   if(t.closest("[data-tmpl]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-tmpl]").dataset.tmpl);j.stages=jobStages(j.type);toast("Stages reset from "+j.type+" template");openScheduleJob(j.id);return;}
   if(t.closest("[data-remind]")){const j=DB.jobs.find(x=>x.id===t.closest("[data-remind]").dataset.remind);toast("Payment reminder sent to "+custName(j.cust));return;}
+  if(t.closest("[data-matfilter]")){const k=t.closest("[data-matfilter]").dataset.matfilter;MATFILTER[k]=!MATFILTER[k];render();return;}
+  if(t.closest("[data-previewpo]")){openPO(t.closest("[data-previewpo]").dataset.previewpo);return;}
+  if(t.closest("[data-rfq]")){const v=t.closest("[data-rfq]").dataset.rfq;toast("RFQ sent to "+v+" — requesting current pricing");closeOverlays();return;}
   if(t.closest("[data-addpo]")){DB.materials[+t.closest("[data-addpo]").dataset.addpo].status="draft";toast("Added to draft PO");render();return;}
   if(t.closest("[data-rmpo]")){DB.materials[+t.closest("[data-rmpo]").dataset.rmpo].status="need";render();return;}
-  if(t.closest("[data-sendpo]")){const v=t.closest("[data-sendpo]").dataset.sendpo;const items=DB.materials.filter(m=>m.vendor===v&&m.status==="draft");const total=items.reduce((a,m)=>a+Math.max(0,m.need-m.onHand)*m.cost,0);items.forEach(m=>{m.status="ordered";m.eta="Thu";});toast("PO sent to "+v+" rep — "+items.length+" item(s), "+usd(total)+" · recorded in QuickBooks");render();return;}
+  if(t.closest("[data-sendpo]")){const v=t.closest("[data-sendpo]").dataset.sendpo;const items=DB.materials.filter(m=>m.vendor===v&&m.status==="draft");const total=items.reduce((a,m)=>a+Math.max(0,m.need-m.onHand)*m.cost,0);items.forEach(m=>{m.status="ordered";m.eta="Thu";});toast("PO sent to "+v+" rep — "+items.length+" item(s), "+usd(total)+" · recorded in QuickBooks");closeOverlays();render();return;}
   if(t.closest("[data-receive]")){const m=DB.materials[+t.closest("[data-receive]").dataset.receive];m.onHand=m.need;m.status="stock";toast("Received "+m.item+" — job unblocked for scheduling");render();return;}
   if(t.closest("[data-newoppfor]")){newOpportunity(t.closest("[data-newoppfor]").dataset.newoppfor);return;}
   if(t.id==="drawerClose"||t.id==="scrim")closeOverlays();
