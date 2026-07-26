@@ -140,6 +140,15 @@
   .cap span{font-size:12px;color:var(--ink-2);font-weight:600;line-height:1.35}
   @media (max-width:900px){.capgrid{grid-template-columns:1fr 1fr}}
   @media (max-width:640px){.capgrid{grid-template-columns:1fr}}
+  .caprich{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:6px 0 14px}
+  .capcard{background:var(--surface-2);border-radius:12px;padding:13px 14px;border-left:3px solid var(--accent)}
+  .capcard .ct{font-weight:750;font-size:14px;margin-bottom:8px}
+  .toolrow{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+  .toolbadge{font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:3px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--ink-2)}
+  .capdoes{font-size:12.5px;color:var(--ink-2);font-weight:550;line-height:1.4;margin-bottom:8px}
+  .capben{font-size:12.5px;font-weight:700;color:var(--accent-ink);display:flex;gap:6px;align-items:baseline}
+  .capben::before{content:"→";font-weight:800}
+  @media (max-width:760px){.caprich{grid-template-columns:1fr}}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.45;-webkit-font-smoothing:antialiased;padding-bottom:96px}
   .tnum{font-variant-numeric:tabular-nums}
@@ -482,15 +491,14 @@ el("gear").onclick=()=>el("setpanel").classList.toggle("open");
 el("setsave").onclick=()=>el("setpanel").classList.remove("open");
 
 const CAPS=[
-  {t:"Daily briefing + audio",d:"A weather-aware morning rundown you can read or listen to."},
-  {t:"Live weather + GO/HOLD",d:"Real forecast decides exterior work, on your own risk threshold (gear icon)."},
-  {t:"Estimate-to-cash pipeline",d:"Lead to quote to e-sign + deposit to schedule to invoice to paid."},
-  {t:"Create on the fly",d:"New customers, opportunities, and quotes in a couple taps."},
-  {t:"Dispatch optimizer",d:"Suggests day + crew from weather, crew, materials, and location."},
-  {t:"Crew & time-off",d:"Assign crews and see who is out before you schedule."},
-  {t:"Materials & POs",d:"On-hand vs order, purchase orders to vendors, cost to QuickBooks."},
-  {t:"Money at a glance",d:"Receivables, overdue accounts, and what is expected today."},
-  {t:"Tap-to-talk feedback",d:"Hit the button, say what is wrong, it files straight to us."}
+  {t:"Instant lead capture & response",tools:["GoHighLevel","SMS","Email"],does:"Replies to every new lead in seconds — day, night, weekend — and texts back missed calls automatically.",ben:"No lead lost to a slow reply."},
+  {t:"Estimate to signed & paid",tools:["GoHighLevel","Stripe","QuickBooks"],does:"Builds the proposal, collects e-signature and deposit, auto-invoices on completion, and records the payment to your books.",ben:"Paid faster, zero manual invoicing."},
+  {t:"Weather-aware scheduling",tools:["NWS Live Forecast","AI logic","n8n engine"],does:"Pulls the real National Weather Service forecast and schedules exterior work around rain — on the risk threshold you set.",ben:"Stop losing days to weather surprises."},
+  {t:"Materials & purchasing",tools:["QuickBooks","Vendor POs / RFQ"],does:"Tracks on-hand vs needed, builds purchase orders and quote requests by vendor, and posts cost to your books.",ben:"Never start a job short; always know job cost."},
+  {t:"The daily briefing",tools:["AI (GPT / Claude)","Text-to-speech","NWS Forecast"],does:"Reads your live weather and business each morning and writes — and voices — a plain-language rundown.",ben:"Run the day in 90 seconds, hands-free."},
+  {t:"Command center dashboard",tools:["n8n data engine","Live feeds"],does:"Rolls up interior vs exterior backlog, labor and material cost, receivables, and weather into one screen.",ben:"See the numbers you can't see today."},
+  {t:"Crew & field coordination",tools:["GoHighLevel","SMS","English / Spanish"],does:"Dispatches crews, prompts them by text to log end-of-day hours, and runs English or Spanish for the field.",ben:"Coordinate the crew without phone tag."},
+  {t:"The orchestration engine",tools:["n8n","Secure webhooks","APIs"],does:"The layer wiring GoHighLevel, QuickBooks, Stripe, weather, and AI together and keeping them all in sync.",ben:"One system — not five tools you re-key data into."}
 ];
 
 /* materials filter state (all groups shown by default) + PO number helper */
@@ -516,7 +524,7 @@ function vOverview(){
     <div class="meta"><span class="meta">Precip ${w.precipChance}%</span><span class="meta">Wind ${esc(w.windMph)}</span><span class="meta">Risk limit ${SETTINGS.rainThreshold}% ⚙</span></div>
     <span class="spacer"></span><span class="pill ${ok?"ok":"no"}"><span class="led"></span>${ok?"Exterior work: GO":"Exterior work: HOLD"}</span></div>`;
 
-  h+=`<details class="caps" open><summary>What your Command Center can do</summary><div class="capgrid">`+CAPS.map(c=>`<div class="cap"><b>${esc(c.t)}</b><span>${esc(c.d)}</span></div>`).join("")+`</div></details>`;
+  h+=`<details class="caps" open><summary>What your Command Center does — and what powers it</summary><div class="caprich">`+CAPS.map(c=>`<div class="capcard"><div class="ct">${esc(c.t)}</div><div class="toolrow">${c.tools.map(t=>`<span class="toolbadge">${esc(t)}</span>`).join("")}</div><div class="capdoes">${esc(c.does)}</div><div class="capben">${esc(c.ben)}</div></div>`).join("")+`</div></details>`;
 
   h+=`<div class="quickbar">
     <button class="qbtn" data-new="customer"><span class="i">＋</span> New Customer</button>
