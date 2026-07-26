@@ -89,6 +89,20 @@
   .step .t{font-weight:700;margin:6px 0 4px}
   .step .d{font-size:13px;color:var(--ink-2);font-weight:500}
 
+  .areas{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .area{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;box-shadow:var(--raise)}
+  .area-h{font-weight:750;font-size:15.5px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+  .area-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .acol-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px}
+  .acol.wf .acol-h{color:var(--accent-ink)}
+  .acol ul{margin:0;padding:0}
+  .acol li{list-style:none;font-size:12.5px;font-weight:550;line-height:1.35;padding:4px 0 4px 20px;position:relative;color:var(--ink-2)}
+  .acol li::before{content:"✓";position:absolute;left:0;top:4px;color:var(--info);font-weight:800;font-size:11px}
+  .acol.wf li::before{content:"↻";color:var(--accent-ink)}
+  .legendrow{display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 14px}
+  .legendrow span{display:inline-flex;align-items:center;gap:7px}
+  .legendrow i{font-style:normal;font-weight:800}.legendrow i.a{color:var(--info)}.legendrow i.w{color:var(--accent-ink)}
+  @media (max-width:760px){ .areas{grid-template-columns:1fr} .area-cols{grid-template-columns:1fr} }
   footer{margin-top:34px;color:var(--muted);font-size:13px;font-weight:600;text-align:center}
   @media (max-width:760px){ .cards,.steps{grid-template-columns:1fr} .hero h1{font-size:26px} .meter .pct{font-size:32px} }
 </style>
@@ -179,6 +193,63 @@
         <div class="quote">Quick wins + live weather engine <span class="status live">Live / ready</span></div>
         <div class="built">Instant lead replies, missed-call text-back, and review requests are ready to switch on. The live weather feed and data engine that power the briefing and dashboard are already running.</div>
       </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Everything this brings to life</h2>
+    <p class="lead" style="margin-bottom:14px">Two kinds of things happen here. <b>Actions</b> are what you and your team do from one screen. <b>Workflows</b> are what runs on its own, in the background, so you don't have to.</p>
+    <div class="legendrow"><span><i class="a">✓</i> Action you take</span><span><i class="w">↻</i> Workflow that runs for you</span></div>
+    <div class="areas">
+
+      <div class="area">
+        <div class="area-h">Leads &amp; first contact</div>
+        <div class="area-cols">
+          <div class="acol"><div class="acol-h">You do</div><ul><li>Log a new lead or customer</li><li>Pick up a conversation in one inbox</li></ul></div>
+          <div class="acol wf"><div class="acol-h">Runs for you</div><ul><li>Instant reply to new leads, nights &amp; weekends</li><li>Missed-call text-back so none slip</li><li>Review request after a job wraps</li></ul></div>
+        </div>
+      </div>
+
+      <div class="area">
+        <div class="area-h">Estimating → cash</div>
+        <div class="area-cols">
+          <div class="acol"><div class="acol-h">You do</div><ul><li>Build a quote in seconds</li><li>Send it for e-signature + deposit</li><li>Move a job across the pipeline</li><li>Nudge a slow payer</li></ul></div>
+          <div class="acol wf"><div class="acol-h">Runs for you</div><ul><li>Same-day proposal, signed online, deposit collected</li><li>Auto-invoice the day a job is done, with a pay-now link</li><li>Friendly reminders that chase receivables</li><li>Every payment records itself to QuickBooks</li></ul></div>
+        </div>
+      </div>
+
+      <div class="area">
+        <div class="area-h">Scheduling &amp; dispatch</div>
+        <div class="area-cols">
+          <div class="acol"><div class="acol-h">You do</div><ul><li>Drag a job onto the calendar</li><li>Set job length, assign a crew, swap people</li><li>Set your own rain-risk threshold</li><li>Accept or move the suggested schedule</li></ul></div>
+          <div class="acol wf"><div class="acol-h">Runs for you</div><ul><li>Weather-aware suggestions that avoid rain days</li><li>Crews dispatched without the night-before scramble</li><li>Customers updated at start, progress, and done</li><li>Materials-not-ready holds a job back automatically</li></ul></div>
+        </div>
+      </div>
+
+      <div class="area">
+        <div class="area-h">Materials &amp; purchasing</div>
+        <div class="area-cols">
+          <div class="acol"><div class="acol-h">You do</div><ul><li>Add what's short to a purchase order</li><li>Preview a PO, then send it to your rep</li><li>Request a quote (RFQ) for pricing</li><li>Mark materials received</li></ul></div>
+          <div class="acol wf"><div class="acol-h">Runs for you</div><ul><li>On-hand vs. need-to-order, tracked per job</li><li>POs grouped by vendor, cost posted to QuickBooks</li><li>Received materials unblock the job to schedule</li></ul></div>
+        </div>
+      </div>
+
+      <div class="area">
+        <div class="area-h">Crew &amp; field</div>
+        <div class="area-cols">
+          <div class="acol"><div class="acol-h">You do</div><ul><li>See who's out before you schedule</li><li>Assign crews and specific people</li><li>Crew logs hours, time off, and today's tasks</li></ul></div>
+          <div class="acol wf"><div class="acol-h">Runs for you</div><ul><li>End-of-day text prompts the crew to log hours</li><li>Time-off requests land in one place</li><li>English / Spanish for the crew-facing side</li><li>On-site change orders captured on the spot</li></ul></div>
+        </div>
+      </div>
+
+      <div class="area">
+        <div class="area-h">Command center &amp; intelligence</div>
+        <div class="area-cols">
+          <div class="acol"><div class="acol-h">You do</div><ul><li>Read or listen to your daily briefing</li><li>See backlog, costs, and receivables at a glance</li><li>Tap-to-talk feedback any time</li></ul></div>
+          <div class="acol wf"><div class="acol-h">Runs for you</div><ul><li>Live weather feed, refreshed continuously</li><li>Daily briefing written &amp; voiced each morning</li><li>Labor, material, and AR numbers rolled up for you</li></ul></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
