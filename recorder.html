@@ -1,0 +1,286 @@
+<title>Meeting Companion — Richard's Painting</title>
+<style>
+  :root{
+    --bg:#0e1a24; --panel:#132430; --panel-2:#0f1e28; --ink:#e9f1f4; --ink-2:#a9c1cd; --muted:#6f8794; --border:#22404f;
+    --accent:#2fe4c2; --accent-ink:#04231f; --rec:#ef5350; --rec-soft:#3a1817; --good:#3fd08c; --info:#6bb0f0;
+    --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.45;-webkit-font-smoothing:antialiased}
+  .top{position:sticky;top:0;z-index:10;background:var(--panel);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{font-weight:750;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+  .brand .dot{width:10px;height:10px;border-radius:3px;background:var(--accent)}
+  .brand small{display:block;font-size:11px;color:var(--muted);font-weight:500}
+  .spacer{flex:1}
+  .status{font-size:12.5px;color:var(--ink-2);font-weight:600;display:flex;align-items:center;gap:8px}
+  .status .live{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+  .status.on .live{background:var(--rec);animation:pulse 1.3s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .timer{font-variant-numeric:tabular-nums;font-weight:750;font-size:15px}
+  .recbtn{appearance:none;border:0;cursor:pointer;background:var(--rec);color:#fff;font-weight:750;font-size:14px;padding:11px 18px;border-radius:999px;display:flex;align-items:center;gap:8px}
+  .recbtn.stop{background:var(--panel-2);color:var(--ink);border:1px solid var(--border)}
+  .recbtn .ic{width:12px;height:12px;border-radius:50%;background:#fff}
+  .recbtn.stop .ic{border-radius:2px;background:var(--rec)}
+
+  .note-consent{background:var(--rec-soft);color:#ffb4ad;font-size:12px;font-weight:600;padding:7px 18px;text-align:center}
+
+  .grid{display:grid;grid-template-columns:minmax(320px,1fr) 1.3fr;gap:0;min-height:calc(100vh - 92px)}
+  .pane{padding:16px 18px;overflow:auto}
+  .pane.q{border-right:1px solid var(--border)}
+  .pane h2{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin:0 0 10px}
+
+  .rule{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--ink-2);font-weight:600;margin-bottom:14px}
+  .rule b{color:var(--accent)}
+
+  .qsec{margin-bottom:14px}
+  .qsec-h{font-size:12px;font-weight:800;letter-spacing:.03em;color:var(--accent);text-transform:uppercase;margin:0 0 6px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+  .q{display:flex;gap:9px;align-items:flex-start;padding:7px 6px;border-radius:8px;cursor:pointer}
+  .q:hover{background:var(--panel)}
+  .q input{margin-top:3px;accent-color:var(--accent);flex:0 0 auto}
+  .q .txt{font-size:13px;font-weight:550;color:var(--ink)}
+  .q.done .txt{color:var(--muted);text-decoration:line-through}
+  .q .mk{margin-left:auto;flex:0 0 auto;font-size:10px;font-weight:700;color:var(--info);opacity:0;border:1px solid var(--border);background:var(--panel-2);border-radius:6px;padding:2px 6px}
+  .q:hover .mk{opacity:1}
+
+  details.cheat{margin-top:12px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
+  details.cheat summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--ink-2)}
+  details.cheat li{font-size:12px;color:var(--ink-2);margin:5px 0}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .chk{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:7px 10px}
+  .chk input{accent-color:var(--accent)}
+  .btn{appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--ink);font:inherit;font-weight:650;font-size:12.5px;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .btn:hover{border-color:var(--accent)}
+  .btn:disabled{opacity:.4;cursor:default}
+
+  .tbox{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;min-height:200px;font-size:13.5px;line-height:1.55}
+  .tline{margin-bottom:6px}
+  .tline .ts{color:var(--muted);font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;margin-right:8px}
+  .tline.mark{color:var(--info);font-weight:700}
+  .tline.interim{color:var(--muted);font-style:italic}
+  .empty{color:var(--muted);font-style:italic}
+
+  .notes{width:100%;margin-top:12px;min-height:120px;resize:vertical;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--ink);font:inherit;font-size:13.5px}
+  .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin:14px 0 6px}
+  .warn{font-size:12px;color:#ffcf7a;font-weight:600;margin-top:8px}
+  @media (max-width:820px){ .grid{grid-template-columns:1fr} .pane.q{border-right:0;border-bottom:1px solid var(--border)} }
+</style>
+
+<div class="top">
+  <div class="brand"><span class="dot"></span><div>Meeting Companion<small>3pm · Richard's Painting × Corporate</small></div></div>
+  <span class="spacer"></span>
+  <div class="status" id="status"><span class="live"></span><span id="statustxt">Idle — AI will transcribe silently, never speak</span></div>
+  <div class="timer" id="timer">00:00</div>
+  <button class="recbtn" id="rec"><span class="ic"></span> Record</button>
+</div>
+<div class="note-consent">Let everyone know they're being recorded before you start.</div>
+
+<div class="grid">
+  <div class="pane q">
+    <h2>Your questions</h2>
+    <div class="rule"><b>Today's rule:</b> discover &amp; create desire — do NOT quote a franchise-wide deal live. Land Josh's access + a corporate follow-up.</div>
+    <div id="questions"></div>
+    <details class="cheat">
+      <summary>Listen for / walk out with</summary>
+      <div style="margin-top:8px">
+        <b style="font-size:11px;color:var(--good)">BUYING SIGNALS</b>
+        <ul style="margin:6px 0"><li>"how would this work for other locations"</li><li>"could corporate see X across shops"</li><li>questions about rollout / standardization / timeline</li></ul>
+        <b style="font-size:11px;color:#ffcf7a">LANDMINES</b>
+        <ul style="margin:6px 0"><li>franchise agreement restricts tools</li><li>corporate wants to build it in-house</li><li>who controls the GHL account is unclear</li></ul>
+        <b style="font-size:11px;color:var(--accent)">WALK OUT WITH</b>
+        <ul style="margin:6px 0"><li>Josh's access + a date</li><li>a scheduled corporate follow-up</li><li>who else needs to be in that room</li></ul>
+      </div>
+    </details>
+  </div>
+
+  <div class="pane">
+    <h2>Live transcript &amp; notes</h2>
+    <div class="controls">
+      <label class="chk"><input type="checkbox" id="tabaudio"> Also capture meeting audio (Zoom tab)</label>
+      <button class="btn" id="dlaudio" disabled>Download audio</button>
+      <button class="btn" id="dltext" disabled>Download transcript</button>
+      <button class="btn" id="dlsession" disabled>Download session (.md)</button>
+      <button class="btn" id="clear">Clear</button>
+    </div>
+    <div class="tbox" id="transcript"><span class="empty">Transcript will appear here as people speak. Press Record to start.</span></div>
+    <div class="lbl">Your notes</div>
+    <textarea class="notes" id="notes" placeholder="Jot decisions, action items, who said what…"></textarea>
+    <div class="warn" id="support"></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+
+/* ---------- questions (from MEETING-QUESTIONS) ---------- */
+const QUESTIONS=[
+  {h:"Open — set the frame",items:[
+    "Want to make sure this is useful for both levels — Josh, we built around your shop; corporate, tell me what you care about.",
+    "So I aim right: what were each of you hoping to get out of today?"
+  ]},
+  {h:"Corporate — intent / why now",items:[
+    "What prompted you both to join today — what's the itch on the corporate side?",
+    "Anything you're already trying to standardize across locations (marketing, CRM, reporting, the new website)?",
+    "What's driving the timing for you right now?"
+  ]},
+  {h:"Corporate — tech & ownership",items:[
+    "Is GoHighLevel standard across every location, or does each franchisee pick their own tools?",
+    "Who owns the GHL relationship — corporate, or each owner?",
+    "How does a NEW location get set up operationally today — standard playbook, or per-owner?"
+  ]},
+  {h:"Corporate — visibility",items:[
+    "What do you wish you could see across locations that you can't today?",
+    "If every location ran the same system, what would you want rolled up to corporate?",
+    "Where do locations most often struggle or fall out of standard?"
+  ]},
+  {h:"Corporate — scale & decision",items:[
+    "How many locations operate today, and what's the growth plan?",
+    "Who makes the call on a franchise-wide tool — and what's that process?",
+    "Any approved-vendor or franchise-agreement requirements a tool must fit inside?"
+  ]},
+  {h:"Corporate — value (let them define it)",items:[
+    "If this works for Josh, what would make it worth looking at for other locations?",
+    "What would 'a win' look like to you 12 months out?"
+  ]},
+  {h:"Franchise — Josh & VA",items:[
+    "Walk me through a normal day — where does the time actually go?",
+    "Of what you've seen, what would you use first, every day?",
+    "Who touches which part — you, the VA, crew leads?",
+    "What's missing that you'd need to run your day on this?"
+  ]},
+  {h:"Franchise — access to go live",items:[
+    "Can we get collaborator access to your GHL sub-account this week — who grants it, you or corporate?",
+    "Your QuickBooks and payment processor — do you control those, or corporate?"
+  ]},
+  {h:"Close — advance",items:[
+    "Let's prove it on Josh's shop; if it delivers, what's the right next conversation for the other locations?",
+    "Who else needs to be part of that conversation?",
+    "Best way to keep you both in the loop as Josh goes live?"
+  ]}
+];
+
+/* render questions */
+(function(){
+  let h="";
+  QUESTIONS.forEach((s,si)=>{
+    h+=`<div class="qsec"><div class="qsec-h">${s.h}</div>`;
+    s.items.forEach((q,qi)=>{
+      h+=`<label class="q" data-q="${si}.${qi}"><input type="checkbox"><span class="txt">${q.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span><span class="mk" data-mark="${q.replace(/"/g,"&quot;")}">mark ⤵</span></label>`;
+    });
+    h+=`</div>`;
+  });
+  $("questions").innerHTML=h;
+})();
+
+/* ---------- state ---------- */
+let recording=false, startMs=0, timerInt=null;
+let mediaRec=null, chunks=[], audioBlob=null, audioURL=null;
+let micStream=null, dispStream=null, actx=null;
+let recog=null, wantRecog=false;
+const T=[]; // transcript lines {t, text, type}
+let interim="";
+
+/* restore autosave */
+try{ const s=JSON.parse(localStorage.getItem("mtg_session")||"{}"); if(s.T)T.push(...s.T); if(s.notes)$("notes").value=s.notes; if(s.checks){s.checks.forEach(k=>{const el=document.querySelector(`.q[data-q="${k}"] input`); if(el){el.checked=true; el.closest(".q").classList.add("done");}});} renderT(); }catch(_){}
+
+function save(){ try{ localStorage.setItem("mtg_session", JSON.stringify({T, notes:$("notes").value, checks:[...document.querySelectorAll(".q input:checked")].map(i=>i.closest(".q").dataset.q)})); }catch(_){} }
+$("notes").addEventListener("input",save);
+
+function stamp(){ if(!startMs)return "00:00"; const s=Math.floor((Date.now()-startMs)/1000); return pad(Math.floor(s/60))+":"+pad(s%60); }
+function addLine(text,type){ T.push({t:stamp(),text,type:type||"speech"}); renderT(); save(); }
+function renderT(){
+  const box=$("transcript");
+  if(!T.length && !interim){ box.innerHTML='<span class="empty">Transcript will appear here as people speak. Press Record to start.</span>'; return; }
+  box.innerHTML=T.map(l=>`<div class="tline ${l.type}"><span class="ts">${l.t}</span>${l.type==="mark"?"◆ ":""}${esc(l.text)}</div>`).join("")+(interim?`<div class="tline interim"><span class="ts">${stamp()}</span>${esc(interim)}</div>`:"");
+  box.scrollTop=box.scrollHeight;
+}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* question interactions */
+$("questions").addEventListener("click",e=>{
+  const mk=e.target.closest("[data-mark]");
+  if(mk){ e.preventDefault(); addLine("Q: "+mk.dataset.mark,"mark"); return; }
+  const q=e.target.closest(".q");
+  if(q){ const cb=q.querySelector("input"); if(e.target!==cb){cb.checked=!cb.checked;} q.classList.toggle("done",cb.checked); save(); }
+});
+
+/* ---------- speech recognition (listen only) ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function startRecog(){
+  if(!SR)return;
+  recog=new SR(); recog.continuous=true; recog.interimResults=true; recog.lang="en-US";
+  recog.onresult=e=>{ let fin=""; interim="";
+    for(let i=e.resultIndex;i<e.results.length;i++){ const r=e.results[i]; if(r.isFinal)fin+=r[0].transcript; else interim+=r[0].transcript; }
+    if(fin.trim())addLine(fin.trim(),"speech"); else renderT();
+  };
+  recog.onerror=ev=>{ if(ev.error==="not-allowed"||ev.error==="service-not-allowed"){ $("support").textContent="Mic permission blocked — allow the microphone to transcribe."; } };
+  recog.onend=()=>{ interim=""; if(wantRecog){ try{recog.start();}catch(_){}} };
+  try{recog.start();}catch(_){}
+}
+function stopRecog(){ wantRecog=false; if(recog){try{recog.stop();}catch(_){}} }
+
+/* ---------- audio recording ---------- */
+async function startRec(){
+  chunks=[]; audioBlob=null;
+  try{ micStream=await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(_){ $("support").textContent="Couldn't get the microphone. Allow mic access and reload."; return false; }
+  let recStream=micStream;
+  if($("tabaudio").checked && navigator.mediaDevices.getDisplayMedia){
+    try{
+      dispStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
+      const tabAudio=dispStream.getAudioTracks();
+      if(tabAudio.length){
+        actx=new (window.AudioContext||window.webkitAudioContext)();
+        const dest=actx.createMediaStreamDestination();
+        actx.createMediaStreamSource(micStream).connect(dest);
+        actx.createMediaStreamSource(new MediaStream(tabAudio)).connect(dest);
+        recStream=dest.stream;
+      } else { $("support").textContent="No tab audio shared — recording mic only. (Pick a tab and check 'share tab audio'.)"; }
+      dispStream.getVideoTracks().forEach(t=>t.stop());
+    }catch(_){ $("support").textContent="Tab-audio capture cancelled — recording mic only."; }
+  }
+  try{
+    mediaRec=new MediaRecorder(recStream);
+    mediaRec.ondataavailable=e=>{ if(e.data.size)chunks.push(e.data); };
+    mediaRec.onstop=()=>{ audioBlob=new Blob(chunks,{type:mediaRec.mimeType||"audio/webm"}); if(audioURL)URL.revokeObjectURL(audioURL); audioURL=URL.createObjectURL(audioBlob); $("dlaudio").disabled=false; };
+    mediaRec.start(1000);
+  }catch(_){ $("support").textContent="Recording not supported in this browser — use Chrome or Edge."; return false; }
+  return true;
+}
+function stopRec(){ if(mediaRec&&mediaRec.state!=="inactive")mediaRec.stop(); [micStream,dispStream].forEach(s=>s&&s.getTracks().forEach(t=>t.stop())); }
+
+/* ---------- record toggle ---------- */
+$("rec").onclick=async()=>{
+  if(!recording){
+    const ok=await startRec(); if(!ok)return;
+    recording=true; startMs=Date.now(); wantRecog=true; startRecog();
+    $("rec").classList.add("stop"); $("rec").innerHTML='<span class="ic"></span> Stop';
+    $("status").classList.add("on"); $("statustxt").textContent="Recording — AI is transcribing, not speaking";
+    timerInt=setInterval(()=>{$("timer").textContent=stamp();},500);
+    $("dltext").disabled=false; $("dlsession").disabled=false;
+  } else {
+    recording=false; stopRec(); stopRecog(); clearInterval(timerInt);
+    $("rec").classList.remove("stop"); $("rec").innerHTML='<span class="ic"></span> Record';
+    $("status").classList.remove("on"); $("statustxt").textContent="Stopped — download your audio, transcript, and notes";
+    interim=""; renderT();
+  }
+};
+
+/* ---------- downloads ---------- */
+function dl(name,blob){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+const dstamp=()=>{ const d=new Date(); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate()); };
+$("dlaudio").onclick=()=>{ if(audioBlob)dl("richards-meeting-"+dstamp()+".webm",audioBlob); };
+function transcriptText(){ return T.map(l=>`[${l.t}] ${l.type==="mark"?"◆ ":""}${l.text}`).join("\n"); }
+$("dltext").onclick=()=>dl("richards-meeting-transcript-"+dstamp()+".txt",new Blob([transcriptText()],{type:"text/plain"}));
+$("dlsession").onclick=()=>{
+  const checks=[...document.querySelectorAll(".q")].map(q=>`- [${q.querySelector("input").checked?"x":" "}] ${q.querySelector(".txt").textContent}`).join("\n");
+  const md=`# Richard's Painting — Meeting Notes (${new Date().toLocaleString()})\n\n## Notes\n${$("notes").value||"(none)"}\n\n## Questions covered\n${checks}\n\n## Transcript\n${transcriptText()||"(none)"}\n`;
+  dl("richards-meeting-session-"+dstamp()+".md",new Blob([md],{type:"text/markdown"}));
+};
+$("clear").onclick=()=>{ if(!confirm("Clear transcript, notes, and checkmarks?"))return; T.length=0; interim=""; $("notes").value=""; document.querySelectorAll(".q input").forEach(i=>{i.checked=false;i.closest(".q").classList.remove("done");}); localStorage.removeItem("mtg_session"); renderT(); };
+
+/* support note */
+(function(){ const msgs=[]; if(!SR)msgs.push("Live transcript needs Chrome or Edge (audio still records)."); if(!navigator.mediaDevices||!window.MediaRecorder)msgs.push("Recording needs a modern browser (Chrome/Edge)."); if(!location.protocol.startsWith("https"))msgs.push("Open over https for mic access."); $("support").textContent=msgs.join(" "); })();
+renderT();
+</script>
