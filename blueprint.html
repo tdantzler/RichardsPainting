@@ -1,0 +1,201 @@
+<title>Richard's Painting — Operations Blueprint</title>
+<style>
+  :root{
+    --bg:#f5f7f8; --surface:#ffffff; --surface-2:#eef3f5; --ink:#0e1a24; --ink-2:#3d5563; --muted:#728796; --border:#e3eaed;
+    --brand:#0e1a24; --accent:#0a8f7f; --accent-ink:#076658; --accent-soft:#d8f3ee; --mint:#2fe4c2;
+    --ghl:#2b6cb0; --ghl-soft:#dde9f6; --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --raise:0 1px 2px rgba(14,26,36,.06),0 10px 28px rgba(14,26,36,.06);
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0b141b; --surface:#111e28; --surface-2:#0e1a23; --ink:#e9f1f4; --ink-2:#aec4cf; --muted:#6f8794; --border:#1e3441;
+    --brand:#08121a; --accent:#2fe4c2; --accent-ink:#2fe4c2; --accent-soft:#0f3a37; --ghl:#6bb0f0; --ghl-soft:#14293b;
+    --raise:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.4);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0b141b; --surface:#111e28; --surface-2:#0e1a23; --ink:#e9f1f4; --ink-2:#aec4cf; --muted:#6f8794; --border:#1e3441;
+    --brand:#08121a; --accent:#2fe4c2; --accent-ink:#2fe4c2; --accent-soft:#0f3a37; --ghl:#6bb0f0; --ghl-soft:#14293b;
+    --raise:0 1px 2px rgba(0,0,0,.4),0 12px 32px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f7f8; --surface:#ffffff; --surface-2:#eef3f5; --ink:#0e1a24; --ink-2:#3d5563; --muted:#728796; --border:#e3eaed;
+    --brand:#0e1a24; --accent:#0a8f7f; --accent-ink:#076658; --accent-soft:#d8f3ee; --ghl:#2b6cb0; --ghl-soft:#dde9f6;
+    --raise:0 1px 2px rgba(14,26,36,.06),0 10px 28px rgba(14,26,36,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:22px 22px 60px}
+  a{color:var(--accent-ink)}
+
+  .hero{background:var(--brand);color:#eaf4f2;border-radius:20px;padding:34px 32px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-60px;top:-70px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(47,228,194,.22),transparent 70%)}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mint)}
+  .hero h1{margin:12px 0 8px;font-size:33px;line-height:1.1;letter-spacing:-.02em;text-wrap:balance;max-width:22ch}
+  .hero p{margin:0;font-size:17px;color:#bcd3ce;max-width:64ch}
+  .hero .who{margin-top:16px;font-size:13px;color:#8fb0a9;font-weight:600}
+
+  .section{margin-top:26px}
+  .section>h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:10px}
+  .section>h2::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--accent)}
+
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .lg{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:var(--raise);border-top:4px solid var(--ghl)}
+  .lg.platform{border-top-color:var(--accent)}
+  .lg .tag{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ghl)}
+  .lg.platform .tag{color:var(--accent-ink)}
+  .lg h3{margin:6px 0 4px;font-size:17px}
+  .lg p{margin:0;font-size:13.5px;color:var(--ink-2);font-weight:500}
+
+  .phase{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--raise);margin-bottom:12px;overflow:hidden}
+  .phase-h{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--border);font-weight:750;font-size:15.5px}
+  .phase-h .demoed{margin-left:auto;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--accent-ink);background:var(--accent-soft);padding:3px 9px;border-radius:999px}
+  .cols{display:grid;grid-template-columns:1fr 1fr}
+  .col{padding:14px 18px}
+  .col.ghl{border-right:1px solid var(--border);background:linear-gradient(0deg,transparent,transparent)}
+  .col-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+  .col.ghl .col-h{color:var(--ghl)} .col.plat .col-h{color:var(--accent-ink)}
+  .col ul{margin:0;padding:0}
+  .col li{list-style:none;font-size:12.5px;font-weight:550;line-height:1.4;padding:4px 0 4px 20px;position:relative;color:var(--ink-2)}
+  .col.ghl li::before{content:"✓";position:absolute;left:0;top:4px;color:var(--ghl);font-weight:800;font-size:11px}
+  .col.plat li::before{content:"↻";position:absolute;left:0;top:4px;color:var(--accent-ink);font-weight:800;font-size:11px}
+  .col.plat li b{color:var(--ink)}
+  .col.none{color:var(--muted);font-size:12.5px;font-weight:500;display:flex;align-items:center}
+
+  .scale{background:var(--brand);color:#eaf4f2;border-radius:18px;padding:26px 28px;position:relative;overflow:hidden}
+  .scale h3{margin:0 0 8px;font-size:22px;color:var(--mint)}
+  .scale p{margin:0 0 16px;color:#bcd3ce;font-size:15.5px;max-width:66ch}
+  .scale .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .scale .s{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:14px}
+  .scale .s b{display:block;color:#eaf4f2;font-size:14px;margin-bottom:4px}
+  .scale .s span{font-size:12.5px;color:#a8c5bf}
+
+  .callout{background:var(--accent-soft);border-radius:16px;padding:20px 22px;margin-top:26px}
+  .callout h3{margin:0 0 6px;font-size:19px;color:var(--accent-ink)}
+  .callout p{margin:0 0 14px;color:var(--ink-2);font-weight:500}
+  .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;font-size:15px;padding:13px 20px;border-radius:12px;background:var(--accent);color:#04231f}
+
+  footer{margin-top:30px;color:var(--muted);font-size:13px;font-weight:600;text-align:center}
+  @media (max-width:760px){ .legend,.cols,.scale .grid3{grid-template-columns:1fr} .col.ghl{border-right:0;border-bottom:1px solid var(--border)} .hero h1{font-size:26px} }
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">Operations Blueprint · Richard's Painting</div>
+    <h1>Every workflow that runs the business — from first lead to repeat customer.</h1>
+    <p>Two engines working together: what lives inside GoHighLevel, and the robust SysSential layer on top. Built to run one location beautifully — and repeatable, location by location, across the brand.</p>
+    <div class="who">Prepared by SysSential for Richard's Painting — franchise &amp; corporate review</div>
+  </div>
+
+  <div class="section">
+    <h2>Two engines, one system</h2>
+    <div class="legend">
+      <div class="lg">
+        <div class="tag">✓ In your GoHighLevel</div>
+        <h3>The plumbing you own</h3>
+        <p>Native automations built inside the GHL you already pay for — lead response, pipelines, proposals, invoicing, reviews. It lives in your account, so it's yours and it stays.</p>
+      </div>
+      <div class="lg platform">
+        <div class="tag">↻ The SysSential engine</div>
+        <h3>The robust layer on top</h3>
+        <p>Cross-system logic, live data (weather, vendors), AI, and the operational depth GHL can't reach — scheduling, materials, inventory, equipment, job costing, and the command center. This is what we build and run.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>The full lifecycle</h2>
+
+    <div class="phase">
+      <div class="phase-h">Lead generation</div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><ul><li>Instant lead replies, 24/7</li><li>Missed-call text-back</li><li>Form / Google / Facebook capture</li><li>Speed-to-lead alerts to the office</li></ul></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li>All lead sources merged into one record, tagged by source</li><li><b>Lead-source ROI</b> — which sources actually close</li><li>After-hours <b>AI responder</b> that answers real questions</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">Sales &amp; proposals</div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><ul><li>Nurture sequences until they book</li><li>Pipeline stage automation</li><li>Proposal + online e-signature + deposit</li><li>Follow-up if a proposal goes unsigned</li></ul></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li><b>AI estimate drafter</b> — job notes to a priced draft</li><li>Pricing assist by surface, sqft, interior/exterior</li><li>Proposal analytics + smart follow-up timing</li><li>Win / loss tracking with reasons</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">Scheduling &amp; dispatch <span class="demoed">Built · in the demo</span></div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><ul><li>Booking calendars + confirmations</li><li>Appointment reminders</li></ul></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li><b>Weather-aware optimizer</b> — live NWS forecast + your own rain-risk threshold + crew + materials + location</li><li>Auto crew dispatch with day-of routes</li><li>Rain push-back → auto-reschedule → customer re-notified</li><li>Multi-week capacity &amp; backlog balancing</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">Delivery &amp; field operations <span class="demoed">Built · in the demo</span></div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><ul><li>Customer job-status updates</li><li>Task assignment on each stage</li><li>Photo / document requests</li></ul></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li><b>Job-stage templates</b> per job type (prep → mud &amp; dry → prime → finish → trim)</li><li>Crew hours via end-of-day text; time-off feeding the schedule</li><li><b>English / Spanish</b> crew-facing layer</li><li>On-site change orders captured and quoted</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">Materials, inventory &amp; equipment <span class="demoed">Materials in the demo</span></div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><div class="col none">Beyond GHL's reach — this is engine territory.</div></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li>On-hand vs need-to-order, <b>purchase orders</b> + <b>RFQ</b> to vendors, cost to QuickBooks</li><li><b>Inventory</b> across trucks &amp; warehouse, consumption tracking, auto-reorder</li><li><b>Equipment maintenance</b> — registry, usage-based service scheduling, work orders, repair &amp; warranty logs</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">Billing &amp; cash</div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><ul><li>Auto-invoice on completion</li><li>Card pay-now link</li><li>Overdue reminder sequences + receipts</li></ul></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li><b>Stripe → QuickBooks</b> auto-reconciliation</li><li>ACH on large commercial invoices</li><li>AR-aging intelligence + prioritized collections</li><li><b>Live job profitability</b> — labor + materials vs invoice</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">Reviews &amp; reputation</div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><ul><li>Automatic review request after a job</li><li>Re-ask if no response</li><li>Negative-feedback interception</li></ul></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li>Satisfaction → review routing + testimonial capture</li><li>Reputation trends, rolled up across locations</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">Retention &amp; growth</div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><ul><li>Seasonal re-engagement blasts</li><li>Referral-request sequences</li><li>Old-customer reactivation drips</li></ul></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li><b>Predictive re-paint reminders</b> — job age + surface lifespan → the right customer at the right time</li><li>Win-back on lost estimates (smart timing)</li><li><b>Annual maintenance programs</b> — recurring revenue</li><li>Lifetime-value segmentation for targeted campaigns</li></ul></div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-h">The command center <span class="demoed">Built · in the demo</span></div>
+      <div class="cols">
+        <div class="col ghl"><div class="col-h">In your GoHighLevel</div><div class="col none">The single pane sits above GHL — powered by the engine.</div></div>
+        <div class="col plat"><div class="col-h">SysSential engine</div><ul><li><b>Daily briefing</b> — your live data + weather, written and voiced every morning</li><li>One screen: backlog, labor/material cost, receivables, weather, schedule</li><li>KPIs, trends, and a tap-to-talk feedback loop</li></ul></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="scale">
+      <h3>Built once. Repeatable everywhere.</h3>
+      <p>This is engineered as a template, not a one-off. Prove it on one shop, then deploy the same engine location by location — same workflows, consistent brand, and a roll-up view of the whole picture.</p>
+      <div class="grid3">
+        <div class="s"><b>Standardized</b><span>Every location runs the same proven workflows — no reinventing per shop.</span></div>
+        <div class="s"><b>Deployed per location</b><span>Copy the engine, swap in each location's accounts. Days, not months.</span></div>
+        <div class="s"><b>Rolled up</b><span>Each owner runs their shop; corporate sees across all of them.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>See it working</h3>
+    <p>Not slideware. An interactive command center running on sample data — click the pipeline, drag a job onto a rainy day and watch it push back, build a purchase order. It's the shape of the shop, in software.</p>
+    <a class="btn" href="https://tdantzler.github.io/RichardsPainting/command-center.html" target="_blank" rel="noopener">Open the live demo →</a>
+  </div>
+
+  <footer>SysSential · hello@syssential.com — Operations Blueprint for Richard's Painting</footer>
+</div>
