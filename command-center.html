@@ -252,6 +252,11 @@
   .btn.sm{padding:6px 10px;font-size:12px}
   .btn.warn{color:var(--warn)} .btn.crit{color:var(--crit)}
 
+  /* job board (crew) */
+  .boardjob{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--border)}
+  .boardjob:first-of-type{border-top:0}
+  .boardacts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+
   /* materials filters + PO doc */
   .kpi.mfilter{cursor:pointer;user-select:none}
   .kpi.mfilter:hover{border-color:var(--accent)}
@@ -375,6 +380,7 @@
     <button data-view="schedule">Schedule &amp; Dispatch</button>
     <button data-view="materials">Materials</button>
     <button data-view="customers">Customers</button>
+    <button data-view="board">Job Board</button>
   </nav>
 
   <div class="conceptbar">◆ Interactive concept — every button works against sample data to show the flow. Live GoHighLevel + QuickBooks wiring drops in behind these same controls.</div>
@@ -446,6 +452,7 @@ const DB = {
     {id:"J-090",cust:"C1",name:"Adams porch & rails",type:"exterior",stage:"paid",value:3100,address:"12 Oak Ln"}
   ],
   crewOut:[{name:"Miguel",reason:"PTO"}],
+  fieldSubs:[],
   materials:[
     {job:"J-101",item:"Exterior primer (5gal)",onHand:0,need:3,vendor:"Sherwin-Williams",cost:45,status:"need"},
     {job:"J-101",item:"Exterior paint — Accessible Beige",onHand:6,need:6,vendor:"Sherwin-Williams",cost:52,status:"stock"},
@@ -508,7 +515,7 @@ function poNumber(v){ const a=v.replace(/[^A-Za-z]/g,"").slice(0,3).toUpperCase(
 /* ---------- router ---------- */
 let VIEW="overview";
 el("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(!b)return;VIEW=b.dataset.view;[...el("tabs").children].forEach(x=>x.classList.toggle("on",x===b));render();});
-function render(){ ({overview:vOverview,pipeline:vPipeline,schedule:vSchedule,materials:vMaterials,customers:vCustomers}[VIEW]||vOverview)(); }
+function render(){ ({overview:vOverview,pipeline:vPipeline,schedule:vSchedule,materials:vMaterials,customers:vCustomers,board:vBoard}[VIEW]||vOverview)(); }
 
 /* ---------- OVERVIEW ---------- */
 function vOverview(){
@@ -708,6 +715,65 @@ function vCustomers(){
   el("view").innerHTML=h;
 }
 
+/* ---------- JOB BOARD (crew-facing: change orders, materials requests, feedback) ---------- */
+let BOARDLANG="en";
+const BUSER="Luis · Crew A";
+const TB={
+  en:{title:"Job Board",sub:"Crew view — what your team sees on their phone",myjobs:"My jobs",change:"Change order",materials:"Materials request",report:"Report / feedback",feed:"Recent from the field",none:"Nothing submitted yet.",lang:"Ver en Español",
+      codesc:"What changed on site?",coprice:"Added price (optional)",send:"Send to office",mritem:"What do you need?",mrqty:"Qty",rpmsg:"What's going on?",
+      pending:"Pending approval",requested:"Requested",sent:"Sent",dictate:"Dictate"},
+  es:{title:"Tablero de trabajos",sub:"Vista del equipo — lo que ve tu gente en el teléfono",myjobs:"Mis trabajos",change:"Orden de cambio",materials:"Pedir materiales",report:"Reportar / comentar",feed:"Reciente del campo",none:"Nada enviado todavía.",lang:"View in English",
+      codesc:"¿Qué cambió en el sitio?",coprice:"Precio adicional (opcional)",send:"Enviar a oficina",mritem:"¿Qué necesitas?",mrqty:"Cant.",rpmsg:"¿Qué está pasando?",
+      pending:"Pendiente de aprobación",requested:"Pedido",sent:"Enviado",dictate:"Dictar"}
+};
+function tb(k){return (TB[BOARDLANG]||TB.en)[k]||k;}
+
+function vBoard(){
+  const jobs=DB.jobs.filter(j=>["scheduled","in_progress"].includes(j.stage));
+  let h=`<div class="card" style="margin-bottom:14px"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div><div style="font-weight:750;font-size:18px">${esc(tb("title"))}</div><div class="meta">${esc(tb("sub"))} · ${esc(BUSER)}</div></div>
+    <span class="spacer" style="flex:1"></span>
+    <button class="btn sm" data-boardlang>🌐 ${esc(tb("lang"))}</button></div></div>`;
+  h+=`<div class="grid"><div class="card col-8"><h3 class="ttl">${esc(tb("myjobs"))}<span class="count">${jobs.length}</span></h3>`;
+  h+= jobs.length? jobs.map(j=>`<div class="boardjob"><div><div class="name">${esc(j.name)}</div><div class="meta">${esc(j.address)} · <span class="tag ${j.type==="exterior"?"ext":"int"}">${j.type}</span> · ${esc(crewName(j.crew))}</div></div>
+      <div class="boardacts">
+        <button class="btn sm" data-board-change="${j.id}">✎ ${esc(tb("change"))}</button>
+        <button class="btn sm" data-board-mat="${j.id}">📦 ${esc(tb("materials"))}</button>
+        <button class="btn sm" data-board-report="${j.id}">💬 ${esc(tb("report"))}</button>
+      </div></div>`).join("") : `<div class="row"><div class="meta">${esc(tb("none"))}</div></div>`;
+  h+=`</div>`;
+  h+=`<div class="card col-4"><h3 class="ttl">${esc(tb("feed"))}<span class="count">${DB.fieldSubs.length}</span></h3>`;
+  h+= DB.fieldSubs.length ? DB.fieldSubs.slice().reverse().map(s=>{
+    const jn=(DB.jobs.find(j=>j.id===s.job)||{}).name||"";
+    const icon=s.type==="change"?"✎":s.type==="materials"?"📦":"💬";
+    const tag=s.type==="change"?tb("pending"):s.type==="materials"?tb("requested"):tb("sent");
+    const cls=s.type==="change"?"ext":s.type==="materials"?"info":"good";
+    return `<div class="row"><div><div class="name">${icon} ${esc(s.text)}</div><div class="meta">${esc(jn)} · ${esc(s.by)}${s.price?` · $${esc(s.price)}`:""}</div></div><div class="right"><span class="tag ${cls}">${esc(tag)}</span></div></div>`;
+  }).join("") : `<div class="row"><div class="meta">${esc(tb("none"))}</div></div>`;
+  h+=`</div></div>`;
+  el("view").innerHTML=h;
+}
+function boardChange(jobId){
+  modal(tb("change"),`<div class="field"><label>${esc(tb("codesc"))}</label><textarea name="desc" required placeholder="${esc(tb("codesc"))}"></textarea></div>`+fld(tb("coprice"),"price",{type:"number",ph:"0"}),
+  d=>{DB.fieldSubs.push({type:"change",job:jobId,text:d.desc,price:d.price||"",by:BUSER,ts:Date.now(),status:"pending"});closeOverlays();toast(tb("sent"));render();},tb("send"));
+}
+function boardMat(jobId){
+  modal(tb("materials"),fld(tb("mritem"),"item",{required:true,ph:tb("mritem")})+fld(tb("mrqty"),"qty",{type:"number",ph:"1"}),
+  d=>{DB.fieldSubs.push({type:"materials",job:jobId,text:d.item+(d.qty?` ×${d.qty}`:""),by:BUSER,ts:Date.now(),status:"requested"});
+    DB.materials.push({job:jobId,item:d.item+" (crew request)",onHand:0,need:Math.max(1,+d.qty||1),vendor:"—",cost:0,status:"need"});
+    closeOverlays();toast(tb("sent"));render();},tb("send"));
+}
+function boardReport(jobId){
+  modal(tb("report"),`<div class="field"><label>${esc(tb("rpmsg"))}</label><textarea name="msg" id="rpmsg" required placeholder="${esc(tb("rpmsg"))}"></textarea></div><button type="button" class="btn sm rec" id="rpmic">● ${esc(tb("dictate"))}</button>`,
+  d=>{DB.fieldSubs.push({type:"feedback",job:jobId,text:d.msg,by:BUSER,ts:Date.now(),status:"sent"});closeOverlays();toast(tb("sent"));render();},tb("send"));
+  const SR2=window.SpeechRecognition||window.webkitSpeechRecognition, b=el("rpmic");
+  if(SR2&&b){const r=new SR2();r.lang=BOARDLANG==="es"?"es-ES":"en-US";r.continuous=true;r.interimResults=false;let on=false;
+    r.onresult=e=>{let s="";for(let i=e.resultIndex;i<e.results.length;i++)s+=e.results[i][0].transcript;const ta=el("rpmsg");if(ta)ta.value=(ta.value?ta.value+" ":"")+s.trim();};
+    r.onend=()=>{on=false;b.textContent="● "+tb("dictate");};
+    b.onclick=()=>{if(on){r.stop();}else{try{r.start();on=true;b.textContent="■ Stop";}catch(_){}}};
+  } else if(b){ b.style.display="none"; }
+}
+
 /* ---------- JOB DRAWER ---------- */
 function openJob(id){
   const j=DB.jobs.find(x=>x.id===id);if(!j)return;
@@ -796,6 +862,10 @@ document.addEventListener("click",e=>{
   const t=e.target;
   const nb=t.closest("[data-new]"); if(nb){const k=nb.dataset.new;closeMenu();if(k==="customer")newCustomer();else if(k==="opportunity")newOpportunity();else if(k==="quote")buildQuote();else if(k==="schedule")scheduleJob();return;}
   const go=t.closest("[data-goto]"); if(go){VIEW=go.dataset.goto;syncTabs();render();return;}
+  if(t.closest("[data-boardlang]")){BOARDLANG=BOARDLANG==="en"?"es":"en";render();return;}
+  if(t.closest("[data-board-change]")){boardChange(t.closest("[data-board-change]").dataset.boardChange);return;}
+  if(t.closest("[data-board-mat]")){boardMat(t.closest("[data-board-mat]").dataset.boardMat);return;}
+  if(t.closest("[data-board-report]")){boardReport(t.closest("[data-board-report]").dataset.boardReport);return;}
   const jc=t.closest("[data-job]"); if(jc){openJob(jc.dataset.job);return;}
   if(t.closest("[data-adv]")){advance(t.closest("[data-adv]").dataset.adv);return;}
   if(t.closest("[data-quote]")){buildQuote(t.closest("[data-quote]").dataset.quote);return;}
